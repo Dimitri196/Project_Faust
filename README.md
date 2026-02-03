@@ -34,7 +34,7 @@ The system reconstructs subject trajectories across disparate institutions. By c
 - **Navigation:** React Router 6 (Deep-linking architecture for direct dossier access).
 
 ### **BACKEND_CORE (Nexus Engine)**
-- **Architecture:** Java 21 / Spring Boot 3.x.
+- **Architecture:** Java 25 / Spring Boot 4.x.
 - **Security:** Spring Security + Stateless JWT Authentication.
 - **Database:** PostgreSQL (Relational mapping optimized for hierarchical persistence).
 - **Persistence_Layer:** Hibernate/JPA (High-integrity mapping of multi-directional entity relations).
