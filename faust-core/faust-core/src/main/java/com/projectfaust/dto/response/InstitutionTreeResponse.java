@@ -1,0 +1,20 @@
+package com.projectfaust.dto.response;
+
+import com.projectfaust.entity.enums.HierarchicalLevel;
+import com.projectfaust.entity.enums.InstitutionType;
+
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * Recursive Record for hierarchical tree representation.
+ */
+public record InstitutionTreeResponse(
+        UUID publicId,
+        String name,
+        HierarchicalLevel level,
+        InstitutionType type,
+        String description,
+        boolean isStateOwned,
+        List<InstitutionTreeResponse> children
+) {}

@@ -1,0 +1,73 @@
+spring:
+  # Database Connection
+  datasource:
+    url: jdbc:postgresql://localhost:5432/project_faust?client_encoding=UTF8
+    username: postgres
+    password: Palesse123
+    driver-class-name: org.postgresql.Driver
+
+  # Liquibase Configuration
+  liquibase:
+    # Path to your master changelog file
+    change-log: classpath:db/changelog/db.changelog-master.yaml
+    enabled: true
+    # Ensures Liquibase creates its own tracking tables if they don't exist
+    default-schema: public
+
+  # JPA / Hibernate 7 Settings
+  jpa:
+    # Set to 'validate' so Hibernate checks the schema matches your entities
+    # but doesn't try to change it (Liquibase handles changes)
+    hibernate:
+      ddl-auto: validate
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        # Hibernate Envers for Audit Logging
+        integration:
+          envers:
+            enabled: true # Set to true if audit logging is needed
+        # Performance optimization for batch inserts
+        jdbc:
+          batch_size: 25
+          order_inserts: true
+          order_updates: true
+
+  # Security Configuration
+  # Note: In modern Spring Boot, "security.enabled: false" is deprecated.
+  # You should manage this via a SecurityFilterChain @Bean in your code.
+  security:
+    user:
+      name: admin
+
+# Documentation (Swagger/OpenAPI)
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: alpha
+    tagsSorter: alpha
+    display-request-duration: true
+
+# Application Specific Properties
+documents:
+  expiry:
+    soon-days: 30
+    warning-days: 60
+
+# Logging Levels
+logging:
+  level:
+    root: INFO
+    com.projectfaust: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    # Log Liquibase activity
+    liquibase: INFO
+
+# Server Configuration
+server:
+  port: 8080

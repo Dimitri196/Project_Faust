@@ -1,0 +1,9 @@
+databaseChangeLog:
+  - include:
+      file: db/changelog/changesets/01-init-schema.sql
+  - include:
+      file: db/changelog/changesets/02-fulltext-search.sql
+  - include:
+      file: db/changelog/changesets/03-appointments.sql
+  - include:
+      file: db/changelog/changesets/04-users-RETRY-V1.sql  # ZDE: Musí to být přesně tato cesta!
