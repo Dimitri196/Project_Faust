@@ -1,6 +1,7 @@
 package com.projectfaust.service;
 
 import com.projectfaust.dto.request.AgentOnboardingRequest;
+import com.projectfaust.dto.request.UpdateProfileRequest;
 import com.projectfaust.dto.response.ProfileResponse;
 import com.projectfaust.entity.User;
 import com.projectfaust.mapper.UserMapper;
@@ -9,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,7 +43,7 @@ public class UserService {
     }
 
     @Transactional
-    public void onboardAgent(AgentOnboardingRequest request) {
+    public ProfileResponse onboardAgent(AgentOnboardingRequest request) {
         User agent = new User();
         agent.setFullName(request.codename());
         agent.setEmail(request.officialEmail());
@@ -49,9 +51,32 @@ public class UserService {
         agent.setRole(request.requiresFieldAccess() ? "FIELD_OPERATIVE" : "ANALYST");
         agent.setStatus("ACTIVE");
         agent.setAdmin(false);
-        // Defaultní heslo pro první login
         agent.setPassword("INIT_SECRET_2026");
 
-        userRepository.save(agent);
+        // Důležité: inicializace prázdného seznamu
+        agent.setTechStack(new ArrayList<>());
+
+        User saved = userRepository.save(agent);
+        return userMapper.toResponse(saved);
+    }
+
+    @Transactional
+    public ProfileResponse updateProfile(UUID id, UpdateProfileRequest request) {
+        User user = userRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Subject not found: " + id));
+
+        // Parciální updaty - mění se jen to, co není null
+        if (request.fullName() != null) user.setFullName(request.fullName());
+        if (request.role() != null) user.setRole(request.role());
+        if (request.clearance() != null) user.setClearance(request.clearance());
+        if (request.status() != null) user.setStatus(request.status());
+
+        if (request.techStack() != null) {
+            // U ElementCollection je nejbezpečnější clear() a addAll()
+            user.getTechStack().clear();
+            user.getTechStack().addAll(request.techStack());
+        }
+
+        return userMapper.toResponse(userRepository.save(user));
     }
 }

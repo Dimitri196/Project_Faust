@@ -5,10 +5,6 @@ import com.projectfaust.entity.enums.InstitutionType;
 
 import java.util.UUID;
 
-/**
- * Recursive Record for bottom-up (ascended) representation.
- * From leaf (e.g., Odbor 164) -> Section -> Division -> HQ.
- */
 public record InstitutionAscendedResponse(
         UUID publicId,
         String name,
@@ -16,5 +12,5 @@ public record InstitutionAscendedResponse(
         InstitutionType type,
         String description,
         boolean isStateOwned,
-        InstitutionAscendedResponse parent // The "Ascended" link
+        InstitutionAscendedResponse parent
 ) {}

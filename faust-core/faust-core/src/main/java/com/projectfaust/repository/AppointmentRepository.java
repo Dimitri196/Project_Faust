@@ -9,9 +9,13 @@ import java.util.UUID;
 
 public interface AppointmentRepository extends JpaRepository<Appointment, Long> {
 
-    // Used for the "Clean Swap" logic
+    // Pro "Clean Swap" logiku (hledá aktivního držitele pozice)
     Optional<Appointment> findByOccupationExternalIdAndEndDateIsNull(UUID occupationId);
 
-    // Used for the history view
+    // Pro historii konkrétní pozice (např. kdo všechno byl premiérem)
     List<Appointment> findByOccupationExternalIdOrderByStartDateDesc(UUID occupationId);
+
+    // NOVÉ: Pro kariérní historii konkrétní osoby (např. co všechno dělal Babiš)
+    // Spring se "zanoří" přes person -> externalId
+    List<Appointment> findByPersonExternalIdOrderByStartDateDesc(UUID personId);
 }

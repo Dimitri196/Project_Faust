@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-02-02T20:38:30+0100",
+    date = "2026-02-11T19:01:07+0100",
     comments = "version: 1.6.3, compiler: javac, environment: Java 25.0.1 (Eclipse Adoptium)"
 )
 @Component
@@ -53,6 +53,7 @@ public class OccupationMapperImpl implements OccupationMapper {
         String code = null;
         OccupationCategory category = null;
         String rank = null;
+        String description = null;
 
         publicId = entity.getExternalId();
         institutionName = entityInstitutionName( entity );
@@ -63,10 +64,11 @@ public class OccupationMapperImpl implements OccupationMapper {
         code = entity.getCode();
         category = entity.getCategory();
         rank = entity.getRank();
+        description = entity.getDescription();
 
         boolean isVacant = false;
 
-        OccupationResponse occupationResponse = new OccupationResponse( publicId, title, code, category, institutionName, institutionPublicId, supervisorTitle, reportsToPublicId, isVacant, rank );
+        OccupationResponse occupationResponse = new OccupationResponse( publicId, title, code, category, institutionName, institutionPublicId, supervisorTitle, reportsToPublicId, isVacant, rank, description );
 
         return occupationResponse;
     }

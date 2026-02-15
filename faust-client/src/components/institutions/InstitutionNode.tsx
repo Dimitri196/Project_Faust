@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { ChevronRight, ChevronDown, Building2, Shield, Landmark } from 'lucide-react';
-import type { InstitutionTreeResponse } from '../types';
+import type { InstitutionTreeResponse } from '../../types';
 
 interface NodeProps {
   node: InstitutionTreeResponse;

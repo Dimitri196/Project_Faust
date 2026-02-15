@@ -1,5 +1,8 @@
 package com.projectfaust.dto.response;
 
+import com.projectfaust.entity.Appointment;
+
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -8,7 +11,14 @@ public record AppointmentResponse(
         String personDisplayName,
         UUID personPublicId,
         String occupationTitle,
+        String occupationPublicId,
         LocalDate startDate,
         LocalDate endDate,
-        boolean isActing
+        BigDecimal monthlySalary,
+        BigDecimal monthlyLumpSumAllowance,
+        String currency,
+        boolean isActing,
+        Appointment.BenefitDetails benefitDetails,
+        String appointmentNote,
+        String personPhotoUrl
 ) {}

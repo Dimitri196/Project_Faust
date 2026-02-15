@@ -5,6 +5,8 @@ import com.projectfaust.entity.enums.HierarchicalLevel;
 import com.projectfaust.entity.enums.InstitutionType;
 import org.springframework.data.jpa.domain.Specification;
 
+import java.util.UUID;
+
 public class InstitutionSpecifications {
 
     public static Specification<Institution> hasType(InstitutionType type) {
@@ -28,5 +30,13 @@ public class InstitutionSpecifications {
     public static Specification<Institution> isStateOwned(Boolean isStateOwned) {
         return (root, query, cb) -> isStateOwned == null ? null :
                 cb.equal(root.get("isStateOwned"), isStateOwned);
+    }
+
+    public static Specification<Institution> hasLocation(UUID locationId) {
+        return (root, query, cb) -> {
+            if (locationId == null) return null;
+            // This joins the location table and checks the externalId field
+            return cb.equal(root.get("location").get("externalId"), locationId);
+        };
     }
 }

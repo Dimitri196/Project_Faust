@@ -17,9 +17,13 @@ public interface AppointmentMapper {
 
     @Mapping(source = "externalId", target = "publicId")
     @Mapping(source = "person.externalId", target = "personPublicId")
-    @Mapping(source = "person.fullName", target = "personDisplayName") // Uses Person.getFullName()
+    @Mapping(source = "person.fullName", target = "personDisplayName")
     @Mapping(source = "occupation.title", target = "occupationTitle")
-    @Mapping(source = "acting", target = "isActing") // Explicitní namapování
+    // PŘIDAT TENTO ŘÁDEK:
+    @Mapping(source = "occupation.externalId", target = "occupationPublicId")
+    @Mapping(source = "acting", target = "isActing")
+    @Mapping(source = "appointmentNote", target = "appointmentNote")
+    @Mapping(source = "person.photoUrl", target = "personPhotoUrl")
     AppointmentResponse toResponse(Appointment entity);
 
     List<AppointmentResponse> toResponseList(List<Appointment> entities);

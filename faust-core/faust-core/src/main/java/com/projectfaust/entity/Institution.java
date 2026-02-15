@@ -1,6 +1,7 @@
 package com.projectfaust.entity;
 
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.projectfaust.entity.enums.HierarchicalLevel;
 import com.projectfaust.entity.enums.InstitutionType;
 import com.projectfaust.validator.Hierarchical;
@@ -39,20 +40,32 @@ public class Institution implements Hierarchical<Institution> {
 
     private String countryCode;
 
+    /** * Konec countryCode. Nyní odkazujeme na uzel v mapě světa.
+     * Může to být COUNTRY (Česko) nebo až SUBLOCATION (Místnost 404).
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "location_id")
+    private Location location;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private HierarchicalLevel level;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(name = "type", nullable = false)
     private InstitutionType type;
 
-    @Column(name = "is_state_owned", nullable = false)
+    @JsonProperty("isStateOwned")
     private boolean isStateOwned = false;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
+    @Column(name = "logo_url", length = 512)
+    private String logoUrl;
+
+    @Column(name = "website_url", length = 512)
+    private String websiteUrl;
     // --- HIERARCHY ---
 
     @ManyToOne(fetch = FetchType.LAZY)

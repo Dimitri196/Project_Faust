@@ -6,6 +6,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.envers.Audited;
 import org.hibernate.type.SqlTypes;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.UUID;
 
@@ -39,11 +40,47 @@ public class Appointment {
     @Column(nullable = false)
     private LocalDate startDate;
 
-    private LocalDate endDate; // Null if the person is currently in the role
+    private LocalDate endDate;
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal monthlySalary; // Základní hrubý plat
+
+    @Column(precision = 15, scale = 2)
+    private BigDecimal monthlyLumpSumAllowance; // Paušální náhrady (reprezentace, stravné)
 
     @Builder.Default
-    @Column(name = "is_acting", nullable = false) // Přidáno nullable = false
+    private String currency = "CZK";
+
+    @Builder.Default
+    @Column(name = "is_acting", nullable = false)
     private boolean acting = false;
 
-    private String appointmentNote; // e.g., "Appointed by the Government resolution No. X"
+    @JdbcTypeCode(SqlTypes.JSON)
+    @Column(name = "benefit_details", columnDefinition = "jsonb")
+    private BenefitDetails benefitDetails;
+
+    private String appointmentNote;
+
+    /**
+     * Struktura pro benefity navázané na pozici a jmenování
+     */
+    @Getter
+    @Setter
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @Builder
+    public static class BenefitDetails {
+        private HousingType housingType;
+        private boolean officialCarWithDriver;
+        private boolean securityDetail;
+        private BigDecimal travelBudget;
+        private boolean diplomaticPassport;
+
+        public enum HousingType {
+            NONE,
+            STATE_RESIDENCE,
+            ALLOWANCE,
+            SOCIAL_SUPPORT
+        }
+    }
 }

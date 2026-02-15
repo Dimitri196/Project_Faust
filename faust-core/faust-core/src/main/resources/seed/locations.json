@@ -1,0 +1,74 @@
+[
+  {
+    "name": "Jihočeský kraj",
+    "type": "PROVINCE",
+    "isoCode": "CZ-31",
+    "children": []
+  },
+  {
+    "name": "Plzeňský kraj",
+    "type": "PROVINCE",
+    "isoCode": "CZ-32",
+    "children": []
+  },
+  {
+    "name": "Karlovarský kraj",
+    "type": "PROVINCE",
+    "isoCode": "CZ-41",
+    "children": []
+  },
+  {
+    "name": "Ústecký kraj",
+    "type": "PROVINCE",
+    "isoCode": "CZ-42",
+    "children": []
+  },
+  {
+    "name": "Liberecký kraj",
+    "type": "PROVINCE",
+    "isoCode": "CZ-51",
+    "children": []
+  },
+  {
+    "name": "Královéhradecký kraj",
+    "type": "PROVINCE",
+    "isoCode": "CZ-52",
+    "children": []
+  },
+  {
+    "name": "Pardubický kraj",
+    "type": "PROVINCE",
+    "isoCode": "CZ-53",
+    "children": []
+  },
+  {
+    "name": "Kraj Vysočina",
+    "type": "PROVINCE",
+    "isoCode": "CZ-63",
+    "children": []
+  },
+  {
+    "name": "Jihomoravský kraj",
+    "type": "PROVINCE",
+    "isoCode": "CZ-64",
+    "children": []
+  },
+  {
+    "name": "Olomoucký kraj",
+    "type": "PROVINCE",
+    "isoCode": "CZ-71",
+    "children": []
+  },
+  {
+    "name": "Zlínský kraj",
+    "type": "PROVINCE",
+    "isoCode": "CZ-72",
+    "children": []
+  },
+  {
+    "name": "Moravskoslezský kraj",
+    "type": "PROVINCE",
+    "isoCode": "CZ-80",
+    "children": []
+  }
+]

@@ -51,4 +51,10 @@ public class PersonController {
     public ResponseEntity<List<PersonResponse>> search(@RequestParam String query) {
         return ResponseEntity.ok(service.searchByName(query));
     }
+
+    @PostMapping("/bulk")
+    @Operation(summary = "Bulk import persons", description = "Ingest a list of multiple human profiles in a single transaction.")
+    public ResponseEntity<List<PersonResponse>> createBulk(@Valid @RequestBody List<PersonRequest> requests) {
+        return new ResponseEntity<>(service.createBulk(requests), HttpStatus.CREATED);
+    }
 }

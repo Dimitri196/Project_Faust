@@ -15,45 +15,38 @@ import java.util.List;
 )
 public interface InstitutionMapper {
 
-    /**
-     * Converts a Request Record into an Entity.
-     * We ignore ID and ExternalId because they are handled by the DB/Entity initialization.
-     */
-    @Mapping(target = "id", ignore = true)
-    @Mapping(target = "externalId", ignore = true)
-    @Mapping(target = "parent", ignore = true) // Handled manually in the Service layer
-    @Mapping(target = "children", ignore = true)
-    @Mapping(source = "isStateOwned", target = "isStateOwned")
-    Institution toEntity(InstitutionRequest request);
-
-    /**
-     * Converts an Entity into a Response Record.
-     * Maps the parent's name and the UUID for the frontend.
-     */
     @Mapping(source = "externalId", target = "publicId")
-    @Mapping(source = "parent.externalId", target = "parentId") // Mapování UUID rodiče do DTO
+    @Mapping(source = "parent.externalId", target = "parentId")
+    @Mapping(source = "location.externalId", target = "locationId")
+    @Mapping(source = "location.name", target = "locationName")
     @Mapping(target = "hasChildren", expression = "java(!entity.getChildren().isEmpty())")
-    @Mapping(source = "stateOwned", target = "isStateOwned")
+    @Mapping(target = "fullLocationPath", ignore = true)
+    @Mapping(source = "stateOwned", target = "isStateOwned") // PŘIDEJ TENTO ŘÁDEK
     InstitutionResponse toResponse(Institution entity);
 
+
+    // List mapping will produce responses with null paths,
+    // which we will enrich in the Service if needed.
     List<InstitutionResponse> toResponseList(List<Institution> entities);
 
-    /**
-     * Updates an existing Entity from a Request Record.
-     */
+    @Mapping(target = "id", ignore = true)
+    @Mapping(target = "externalId", ignore = true)
+    @Mapping(target = "parent", ignore = true)
+    @Mapping(target = "children", ignore = true)
+    @Mapping(target = "location", ignore = true)
+    Institution toEntity(InstitutionRequest request);
+
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "externalId", ignore = true)
     @Mapping(target = "parent", ignore = true)
     @Mapping(target = "children", ignore = true)
     void updateEntityFromRequest(InstitutionRequest request, @MappingTarget Institution entity);
 
-
     @Mapping(source = "externalId", target = "publicId")
-    @Mapping(source = "children", target = "children") // MapStruct detects recursion here
+    @Mapping(source = "children", target = "children")
     @Mapping(source = "stateOwned", target = "isStateOwned")
     InstitutionTreeResponse toTreeResponse(Institution entity);
 
-    // BOTTOM-UP: MapStruct vidí "parent" v entitě i v DTO a rekurzivně zavolá toAscendedResponse
     @Mapping(source = "externalId", target = "publicId")
     @Mapping(source = "parent", target = "parent")
     @Mapping(source = "stateOwned", target = "isStateOwned")

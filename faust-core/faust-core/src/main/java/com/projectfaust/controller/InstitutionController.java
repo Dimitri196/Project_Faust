@@ -43,23 +43,11 @@ public class InstitutionController {
         return ResponseEntity.ok(service.getByPublicId(publicId));
     }
 
-    @GetMapping("/search")
-    @Operation(summary = "Search with filters", description = "Dynamic search using Spring Data Specifications. All parameters are optional.")
-    public ResponseEntity<List<InstitutionResponse>> search(
-            @Parameter(description = "Partial name match (case-insensitive)") @RequestParam(required = false) String name,
-            @Parameter(description = "2-letter ISO country code (e.g. CZ)") @RequestParam(required = false) String country,
-            @Parameter(description = "Filter by state ownership") @RequestParam(required = false) Boolean isStateOwned) {
-
-        return ResponseEntity.ok(service.search(name, country, isStateOwned));
-    }
-
-    // Od kořene k potomkům (Organigram)
     @GetMapping("/tree")
     public ResponseEntity<List<InstitutionTreeResponse>> getFullTree() {
         return ResponseEntity.ok(service.getFullTree());
     }
 
-    // Od potomka k rodiči (Linie velení)
     @GetMapping("/{publicId}/path-to-root")
     public ResponseEntity<InstitutionAscendedResponse> getPathToRoot(@PathVariable UUID publicId) {
         return ResponseEntity.ok(service.getAscendedPath(publicId));
@@ -71,4 +59,14 @@ public class InstitutionController {
         return ResponseEntity.ok(service.getSubTree(publicId));
     }
 
+    @GetMapping("/search")
+    @Operation(summary = "Search with filters", description = "Dynamic search using Spring Data Specifications. All parameters are optional.")
+    public ResponseEntity<List<InstitutionResponse>> search(
+            @Parameter(description = "Partial name match (case-insensitive)") @RequestParam(required = false) String name,
+            @Parameter(description = "2-letter ISO country code (e.g. CZ)") @RequestParam(required = false) String country,
+            @Parameter(description = "Filter by state ownership") @RequestParam(required = false) Boolean isStateOwned,
+            @Parameter(description = "Filter by specific location UUID") @RequestParam(required = false) UUID locationId) { // New Param
+
+        return ResponseEntity.ok(service.search(name, country, isStateOwned, locationId));
+    }
 }

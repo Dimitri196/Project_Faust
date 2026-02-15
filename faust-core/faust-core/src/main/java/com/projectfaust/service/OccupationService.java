@@ -54,6 +54,14 @@ public class OccupationService {
     }
 
     @Transactional(readOnly = true)
+    public OccupationResponse getByPublicId(UUID publicId) {
+        log.info("Accessing occupation node detail: {}", publicId);
+        return occupationRepository.findByExternalId(publicId)
+                .map(mapper::toResponse)
+                .orElseThrow(() -> new EntityNotFoundException("Occupation node with ID " + publicId + " not found in the Nexus."));
+    }
+
+    @Transactional(readOnly = true)
     public List<OccupationResponse> getByInstitution(UUID institutionPublicId) {
         return mapper.toResponseList(occupationRepository.findByInstitutionExternalId(institutionPublicId));
     }

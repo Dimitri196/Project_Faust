@@ -6,9 +6,6 @@ import com.projectfaust.entity.enums.InstitutionType;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Recursive Record for hierarchical tree representation.
- */
 public record InstitutionTreeResponse(
         UUID publicId,
         String name,

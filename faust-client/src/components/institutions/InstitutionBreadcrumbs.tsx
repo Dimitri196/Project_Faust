@@ -1,6 +1,6 @@
 import React from 'react';
 import { ChevronRight, ShieldCheck, Terminal } from 'lucide-react';
-import type { InstitutionAscendedResponse } from '../types';
+import type { InstitutionAscendedResponse } from '../../types';
 
 interface BreadcrumbsProps {
   data: InstitutionAscendedResponse;

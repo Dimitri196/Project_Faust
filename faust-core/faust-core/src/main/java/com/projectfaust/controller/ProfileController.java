@@ -1,9 +1,11 @@
 package com.projectfaust.controller;
 
 import com.projectfaust.dto.request.AgentOnboardingRequest;
+import com.projectfaust.dto.request.UpdateProfileRequest;
 import com.projectfaust.dto.response.ProfileResponse;
 import com.projectfaust.service.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -33,8 +35,12 @@ public class ProfileController {
     }
 
     @PostMapping("/onboard")
-    public ResponseEntity<Void> onboard(@RequestBody AgentOnboardingRequest request) {
-        userService.onboardAgent(request);
-        return ResponseEntity.ok().build();
+    public ResponseEntity<ProfileResponse> onboard(@RequestBody AgentOnboardingRequest request) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(userService.onboardAgent(request));
+    }
+
+    @PatchMapping("/dossier/{id}")
+    public ResponseEntity<ProfileResponse> update(@PathVariable UUID id, @RequestBody UpdateProfileRequest request) {
+        return ResponseEntity.ok(userService.updateProfile(id, request));
     }
 }

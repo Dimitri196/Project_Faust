@@ -1,9 +1,51 @@
 package com.projectfaust.entity.enums;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+/**
+ * Defines the security clearance required to access specific data points
+ * within the personnel and institutional registry.
+ */
+@Getter
+@RequiredArgsConstructor
 public enum ClearanceLevel {
-    LEVEL_1_PUBLIC,    // Vidí jen základní názvy institucí
-    LEVEL_2_INTERNAL,  // Vidí strukturu a obsazené pozice
-    LEVEL_3_CONFIDENTIAL, // Vidí detaily osob (maily, telefony) [cite: 3, 5]
-    LEVEL_4_SECRET,    // Vidí historii jmenování a životopisy [cite: 7]
-    LEVEL_5_TOP_SECRET // Vidí vše včetně platů a vazeb
+
+    /** * Access to public metadata only.
+     * Entity names, institution titles, and basic public identifiers.
+     */
+    LEVEL_1_PUBLIC(1, "Public", "Basic institutional metadata and public names only"),
+
+    /** * Access to organizational structures.
+     * Ability to see hierarchy trees and current occupants of positions.
+     */
+    LEVEL_2_INTERNAL(2, "Internal", "Structural overview and current occupants of nodes"),
+
+    /** * Access to restricted contact information.
+     * Direct emails, phone numbers, and office locations.
+     */
+    LEVEL_3_CONFIDENTIAL(3, "Confidential", "Personal contact details and restricted attributes"),
+
+    /** * Access to professional history and dossiers.
+     * Full appointment history, detailed biographies, and internal systemic notes.
+     */
+    LEVEL_4_SECRET(4, "Secret", "Full career history, detailed biographies, and audit logs"),
+
+    /** * Unrestricted access to sensitive financial and risk data.
+     * Salaries, allowances, detailed benefits, and cross-entity risk relations.
+     */
+    LEVEL_5_TOP_SECRET(5, "Top Secret", "Unrestricted access including financial data and risk analysis");
+
+    private final int weight;
+    private final String label;
+    private final String description;
+
+    /**
+     * Checks if this clearance level meets or exceeds the required level.
+     * * @param required The level to compare against.
+     * @return true if access should be granted.
+     */
+    public boolean canAccess(ClearanceLevel required) {
+        return this.weight >= required.getWeight();
+    }
 }

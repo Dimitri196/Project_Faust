@@ -4,7 +4,9 @@ import com.projectfaust.dto.request.InstitutionRequest;
 import com.projectfaust.dto.response.InstitutionAscendedResponse;
 import com.projectfaust.dto.response.InstitutionResponse;
 import com.projectfaust.dto.response.InstitutionTreeResponse;
+import com.projectfaust.dto.response.LocationResponse;
 import com.projectfaust.entity.Institution;
+import com.projectfaust.entity.Location;
 import com.projectfaust.entity.enums.HierarchicalLevel;
 import com.projectfaust.entity.enums.InstitutionType;
 import java.util.ArrayList;
@@ -15,29 +17,11 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-02-02T20:38:30+0100",
+    date = "2026-02-11T19:01:07+0100",
     comments = "version: 1.6.3, compiler: javac, environment: Java 25.0.1 (Eclipse Adoptium)"
 )
 @Component
 public class InstitutionMapperImpl implements InstitutionMapper {
-
-    @Override
-    public Institution toEntity(InstitutionRequest request) {
-        if ( request == null ) {
-            return null;
-        }
-
-        Institution.InstitutionBuilder institution = Institution.builder();
-
-        institution.isStateOwned( request.isStateOwned() );
-        institution.name( request.name() );
-        institution.countryCode( request.countryCode() );
-        institution.level( request.level() );
-        institution.type( request.type() );
-        institution.description( request.description() );
-
-        return institution.build();
-    }
 
     @Override
     public InstitutionResponse toResponse(Institution entity) {
@@ -47,25 +31,34 @@ public class InstitutionMapperImpl implements InstitutionMapper {
 
         UUID publicId = null;
         UUID parentId = null;
+        UUID locationId = null;
+        String locationName = null;
         boolean isStateOwned = false;
         String name = null;
         String countryCode = null;
         HierarchicalLevel level = null;
         InstitutionType type = null;
         String description = null;
+        String logoUrl = null;
+        String websiteUrl = null;
 
         publicId = entity.getExternalId();
         parentId = entityParentExternalId( entity );
+        locationId = entityLocationExternalId( entity );
+        locationName = entityLocationName( entity );
         isStateOwned = entity.isStateOwned();
         name = entity.getName();
         countryCode = entity.getCountryCode();
         level = entity.getLevel();
         type = entity.getType();
         description = entity.getDescription();
+        logoUrl = entity.getLogoUrl();
+        websiteUrl = entity.getWebsiteUrl();
 
         boolean hasChildren = !entity.getChildren().isEmpty();
+        List<LocationResponse> fullLocationPath = null;
 
-        InstitutionResponse institutionResponse = new InstitutionResponse( publicId, name, countryCode, level, type, parentId, hasChildren, isStateOwned, description );
+        InstitutionResponse institutionResponse = new InstitutionResponse( publicId, name, countryCode, level, type, parentId, hasChildren, isStateOwned, description, locationId, locationName, fullLocationPath, logoUrl, websiteUrl );
 
         return institutionResponse;
     }
@@ -85,6 +78,26 @@ public class InstitutionMapperImpl implements InstitutionMapper {
     }
 
     @Override
+    public Institution toEntity(InstitutionRequest request) {
+        if ( request == null ) {
+            return null;
+        }
+
+        Institution.InstitutionBuilder institution = Institution.builder();
+
+        institution.name( request.name() );
+        institution.countryCode( request.countryCode() );
+        institution.level( request.level() );
+        institution.type( request.type() );
+        institution.isStateOwned( request.isStateOwned() );
+        institution.description( request.description() );
+        institution.logoUrl( request.logoUrl() );
+        institution.websiteUrl( request.websiteUrl() );
+
+        return institution.build();
+    }
+
+    @Override
     public void updateEntityFromRequest(InstitutionRequest request, Institution entity) {
         if ( request == null ) {
             return;
@@ -95,6 +108,8 @@ public class InstitutionMapperImpl implements InstitutionMapper {
         entity.setLevel( request.level() );
         entity.setType( request.type() );
         entity.setDescription( request.description() );
+        entity.setLogoUrl( request.logoUrl() );
+        entity.setWebsiteUrl( request.websiteUrl() );
     }
 
     @Override
@@ -171,5 +186,21 @@ public class InstitutionMapperImpl implements InstitutionMapper {
             return null;
         }
         return parent.getExternalId();
+    }
+
+    private UUID entityLocationExternalId(Institution institution) {
+        Location location = institution.getLocation();
+        if ( location == null ) {
+            return null;
+        }
+        return location.getExternalId();
+    }
+
+    private String entityLocationName(Institution institution) {
+        Location location = institution.getLocation();
+        if ( location == null ) {
+            return null;
+        }
+        return location.getName();
     }
 }

@@ -9,8 +9,8 @@ public record OccupationRequest(
         @NotBlank String title,
         @NotBlank String code,
         @NotNull OccupationCategory category,
-        @NotNull UUID institutionPublicId, // Target institution
-        UUID reportsToPublicId,            // Optional supervisor position
+        @NotNull UUID institutionPublicId,
+        UUID reportsToPublicId,
         boolean isVacant,
         String rank,
         String description

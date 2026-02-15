@@ -36,4 +36,11 @@ public class AppointmentController {
     public ResponseEntity<List<AppointmentResponse>> getHistory(@PathVariable UUID occupationId) {
         return ResponseEntity.ok(service.getHistoryByOccupation(occupationId));
     }
+
+    @GetMapping("/person/{personId}")
+    @Operation(summary = "Get career history for a person",
+            description = "Returns all positions held by a specific subject across the timeline.")
+    public ResponseEntity<List<AppointmentResponse>> getPersonHistory(@PathVariable UUID personId) {
+        return ResponseEntity.ok(service.getHistoryByPerson(personId));
+    }
 }

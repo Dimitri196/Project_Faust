@@ -28,55 +28,69 @@ public class AppointmentService {
     private final OccupationRepository occupationRepository;
     private final AppointmentMapper appointmentMapper;
 
-    /**
-     * Appoints a person to a position.
-     * If the position is already occupied, the current appointment is automatically ended.
-     */
     @Transactional
     public void appointPerson(AppointmentRequest request) {
-        log.info("Appointing person {} to occupation {}", request.personPublicId(), request.occupationPublicId());
+        log.info("System_Action: Initiating appointment for Person_ID: {} to Node_ID: {}",
+                request.personPublicId(), request.occupationPublicId());
 
-        // 1. Resolve Occupation
         Occupation occupation = occupationRepository.findByExternalId(request.occupationPublicId())
-                .orElseThrow(() -> new EntityNotFoundException("Occupation not found"));
-
-        // 2. "Clean Swap" - Find and close the currently active appointment if it exists
-        appointmentRepository.findByOccupationExternalIdAndEndDateIsNull(request.occupationPublicId())
-                .ifPresent(existing -> {
-                    log.info("Closing existing appointment for person {}", existing.getPerson().getLastName());
-                    // End previous appointment the day before the new one starts
-                    existing.setEndDate(request.startDate().minusDays(1));
-                    appointmentRepository.save(existing);
-                });
-
-        // 3. Resolve Person
+                .orElseThrow(() -> new EntityNotFoundException("Occupation node not found"));
         Person person = personRepository.findByExternalId(request.personPublicId())
-                .orElseThrow(() -> new EntityNotFoundException("Person not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Subject not found"));
 
-        // 4. Create new Appointment
+        if (request.endDate() == null) {
+            appointmentRepository.findByOccupationExternalIdAndEndDateIsNull(request.occupationPublicId())
+                    .ifPresent(active -> {
+                        if (!request.startDate().isAfter(active.getStartDate())) {
+                            throw new IllegalStateException("Chronological_Error: New active appointment must start after the current one began.");
+                        }
+                        log.info("Node_Maintenance: Closing active appointment for: {}", active.getPerson().getLastName());
+                        active.setEndDate(request.startDate().minusDays(1));
+                        appointmentRepository.save(active);
+                    });
+        } else {
+            log.info("Archive_Entry: Registering historical record for period {} - {}",
+                    request.startDate(), request.endDate());
+        }
+
         Appointment appointment = Appointment.builder()
                 .person(person)
                 .occupation(occupation)
                 .startDate(request.startDate())
+                .endDate(request.endDate())
+                .monthlySalary(request.monthlySalary())
+                .monthlyLumpSumAllowance(request.monthlyLumpSumAllowance())
+                .benefitDetails(request.benefitDetails())
                 .acting(request.isActing())
-                .appointmentNote(request.appointmentNote())
+                .appointmentNote(request.appointmentNote() != null ?
+                        request.appointmentNote() : "Standard systemic deployment")
                 .build();
 
         appointmentRepository.save(appointment);
 
-        // 5. Update Occupation status to NOT vacant
-        if (occupation.isVacant()) {
+        if (request.endDate() == null && occupation.isVacant()) {
             occupation.setVacant(false);
             occupationRepository.save(occupation);
         }
     }
 
     /**
-     * Retrieves the history of a specific chair.
+     * History of a specific chair (What people were in this office?)
      */
     @Transactional(readOnly = true)
     public List<AppointmentResponse> getHistoryByOccupation(UUID occupationId) {
+        log.debug("Accessing chronological logs for Occupation: {}", occupationId);
         List<Appointment> history = appointmentRepository.findByOccupationExternalIdOrderByStartDateDesc(occupationId);
+        return appointmentMapper.toResponseList(history);
+    }
+
+    /**
+     * Career history of a specific person (What offices did this person hold?)
+     */
+    @Transactional(readOnly = true)
+    public List<AppointmentResponse> getHistoryByPerson(UUID personId) {
+        log.debug("Accessing career logs for Person: {}", personId);
+        List<Appointment> history = appointmentRepository.findByPersonExternalIdOrderByStartDateDesc(personId);
         return appointmentMapper.toResponseList(history);
     }
 }

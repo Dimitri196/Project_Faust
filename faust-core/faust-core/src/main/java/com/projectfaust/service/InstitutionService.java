@@ -28,6 +28,7 @@ public class InstitutionService {
     private final InstitutionRepository repository;
     private final InstitutionMapper mapper;
     private final HierarchyValidator hierarchyValidator;
+    private final LocationService locationService;
 
     @Transactional
     public InstitutionResponse create(InstitutionRequest request) {
@@ -38,8 +39,6 @@ public class InstitutionService {
             Institution parent = repository.findByExternalId(request.parentExternalId())
                     .orElseThrow(() -> new EntityNotFoundException("Parent institution not found"));
 
-            // Theoretically impossible to have a cycle on a new entity unless parent is itself,
-            // but the validator handles that "self-parent" case too.
             hierarchyValidator.verifyNoCircularReference(entity, parent);
             entity.setParent(parent);
         }
@@ -68,23 +67,46 @@ public class InstitutionService {
     }
 
     @Transactional(readOnly = true)
-    public List<InstitutionResponse> search(String name, String country, Boolean isStateOwned) {
-        // Chain specifications dynamically
+    public List<InstitutionResponse> search(String name, String country, Boolean isStateOwned, UUID locationId) {
         Specification<Institution> spec = Specification
                 .where(InstitutionSpecifications.nameContains(name))
                 .and(InstitutionSpecifications.hasCountry(country))
-                .and(InstitutionSpecifications.isStateOwned(isStateOwned));
+                .and(InstitutionSpecifications.isStateOwned(isStateOwned))
+                .and(InstitutionSpecifications.hasLocation(locationId)); // Requires this spec method
 
         return repository.findAll(spec).stream()
-                .map(mapper::toResponse)
+                .map(entity -> enrich(mapper.toResponse(entity), entity))
                 .toList();
+    }
+
+    private InstitutionResponse enrich(InstitutionResponse dto, Institution entity) {
+        if (entity.getLocation() == null) return dto;
+
+        var path = locationService.getLocationPath(entity.getLocation().getExternalId());
+
+        return new InstitutionResponse(
+                dto.publicId(),
+                dto.name(),
+                dto.countryCode(),
+                dto.level(),
+                dto.type(),
+                dto.parentId(),
+                dto.hasChildren(),
+                dto.isStateOwned(),
+                dto.description(),
+                entity.getLocation().getExternalId(),
+                entity.getLocation().getName(),
+                path,
+                dto.logoUrl(),
+                dto.websiteUrl()
+        );
     }
 
     @Transactional(readOnly = true)
     public InstitutionResponse getByPublicId(UUID publicId) {
         return repository.findByExternalId(publicId)
-                .map(mapper::toResponse)
-                .orElseThrow(() -> new RuntimeException("Institution not found with ID: " + publicId));
+                .map(entity -> enrich(mapper.toResponse(entity), entity))
+                .orElseThrow(() -> new EntityNotFoundException("Institution not found: " + publicId));
     }
 
     @Transactional(readOnly = true)
@@ -104,24 +126,21 @@ public class InstitutionService {
             Institution newParent = repository.findByExternalId(request.parentExternalId())
                     .orElseThrow(() -> new EntityNotFoundException("New parent not found"));
 
-            // THE GUARDRAIL
             hierarchyValidator.verifyNoCircularReference(entity, newParent);
             entity.setParent(newParent);
         } else {
-            entity.setParent(null); // Allow making an institution a root node
+            entity.setParent(null);
         }
 
         mapper.updateEntityFromRequest(request, entity);
         return mapper.toResponse(repository.save(entity));
     }
 
-    // 2. Směr NAHORU: Najdeme konkrétní list (agenta) a vyjdeme k rodičům
     @Transactional(readOnly = true)
     public InstitutionAscendedResponse getAscendedPath(UUID publicId) {
         Institution leaf = repository.findByExternalId(publicId)
                 .orElseThrow(() -> new EntityNotFoundException("Institution not found"));
 
-        // MapStruct automaticky projde parent -> parent -> parent až k null
         return mapper.toAscendedResponse(leaf);
     }
 
@@ -129,11 +148,9 @@ public class InstitutionService {
     public InstitutionTreeResponse getSubTree(UUID publicId) {
         log.info("Fetching sub-tree starting from: {}", publicId);
 
-        // 1. Find the middle-level institution
         Institution middleNode = repository.findByExternalId(publicId)
                 .orElseThrow(() -> new EntityNotFoundException("Institution not found"));
 
-        // 2. Map it – MapStruct will recursively map all its children
         return mapper.toTreeResponse(middleNode);}
 
 }

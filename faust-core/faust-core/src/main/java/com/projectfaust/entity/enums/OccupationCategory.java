@@ -1,31 +1,49 @@
 package com.projectfaust.entity.enums;
 
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
+
+/**
+ * Defines the functional nature of an occupation across both public and private sectors.
+ * This categorization allows for cross-sector analysis of power and responsibility.
+ */
+@Getter
+@RequiredArgsConstructor
 public enum OccupationCategory {
-    /**
-     * Top-level political roles (Ministers, Deputy Ministers/Náměstek,
-     * Political Advisors). Usually tied to the election cycle.
-     */
-    POLITICAL,
 
     /**
-     * Career civil servants under the State Service Act (Státní služba).
-     * e.g., Sekční šéf, Odborný rada. These remain across governments.
+     * Strategic oversight, ownership, or legislative mandate.
+     * Public: Members of Parliament, Senators, Councilors.
+     * Private: Shareholders, Board Members, Owners.
      */
-    CIVIL_SERVICE,
+    GOVERNANCE(5, "Governance & Mandate"),
 
     /**
-     * Standard employment (Zákoník práce) - specialized experts,
-     * analysts, or specialized management not under the Service Act.
+     * Active leadership, administration, and executive decision-making.
+     * Public: Ministers, Prime Ministers, Mayors, Directors of State Agencies.
+     * Private: CEOs, CTOs, Managing Directors.
      */
-    CONTRACTUAL,
+    EXECUTIVE(4, "Executive Leadership"),
 
     /**
-     * Support staff, IT maintenance, logistics, and manual labor.
+     * Subject matter experts and career professionals.
+     * Public: Civil Servants, Diplomats, Legal Experts, Senior Analysts.
+     * Private: Senior Engineers, Architects, Consultants.
      */
-    TECHNICAL,
+    SPECIALIST(3, "Professional Specialist"),
 
     /**
-     * Temporary members of advisory bodies, councils, or working groups.
+     * Core operational execution and service delivery.
+     * Public: Police Officers, Teachers, Clerks, Technicians.
+     * Private: Sales Staff, Operations Managers, Service Workers.
      */
-    ADVISORY
+    OPERATIONAL(2, "Operations & Service"),
+
+    /**
+     * Support functions, maintenance, and logistics.
+     */
+    TECHNICAL(1, "Technical & Support");
+
+    private final int authorityRank;
+    private final String displayName;
 }

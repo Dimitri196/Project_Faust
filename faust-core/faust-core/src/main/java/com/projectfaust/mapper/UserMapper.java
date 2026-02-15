@@ -8,15 +8,15 @@ import org.springframework.stereotype.Component;
 public class UserMapper {
 
     public ProfileResponse toResponse(User user) {
-        // Tady máš plnou kontrolu nad transformací dat z tvého CV [cite: 4, 7]
         return new ProfileResponse(
-                user.getId().toString(),       // UUID -> String [cite: 17]
-                user.getFullName(),            // "Dimitri Bodzewicz" [cite: 1]
-                user.getRole(),                // "Software Engineer" [cite: 4]
-                user.isAdmin(),                // Tvoje Security logika [cite: 14]
-                user.getClearance(),           // ClearanceLevel [cite: 16]
-                user.getTechStack(),           // List technologií (Java, React, atd.) [cite: 9, 12]
-                user.getStatus()               // "OPERATIONAL" [cite: 16]
+                user.getId(),                // 1. UUID id
+                user.getFullName(),          // 2. String fullName
+                user.getEmail(),             // 3. String email (Tady ti v kódu chyběl!)
+                user.getRole(),              // 4. String role
+                user.getClearance(),         // 5. ClearanceLevel clearance
+                user.getStatus(),            // 6. String status
+                user.getTechStack(),         // 7. List<String> techStack
+                user.isAdmin()               // 8. boolean isAdmin
         );
     }
 }

@@ -4,6 +4,7 @@ import com.projectfaust.dto.response.AppointmentResponse;
 import com.projectfaust.entity.Appointment;
 import com.projectfaust.entity.Occupation;
 import com.projectfaust.entity.Person;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-02-02T20:38:30+0100",
+    date = "2026-02-11T19:01:07+0100",
     comments = "version: 1.6.3, compiler: javac, environment: Java 25.0.1 (Eclipse Adoptium)"
 )
 @Component
@@ -29,19 +30,36 @@ public class AppointmentMapperImpl implements AppointmentMapper {
         UUID personPublicId = null;
         String personDisplayName = null;
         String occupationTitle = null;
+        String occupationPublicId = null;
         boolean isActing = false;
+        String appointmentNote = null;
+        String personPhotoUrl = null;
         LocalDate startDate = null;
         LocalDate endDate = null;
+        BigDecimal monthlySalary = null;
+        BigDecimal monthlyLumpSumAllowance = null;
+        String currency = null;
+        Appointment.BenefitDetails benefitDetails = null;
 
         publicId = entity.getExternalId();
         personPublicId = entityPersonExternalId( entity );
         personDisplayName = entityPersonFullName( entity );
         occupationTitle = entityOccupationTitle( entity );
+        UUID externalId1 = entityOccupationExternalId( entity );
+        if ( externalId1 != null ) {
+            occupationPublicId = externalId1.toString();
+        }
         isActing = entity.isActing();
+        appointmentNote = entity.getAppointmentNote();
+        personPhotoUrl = entityPersonPhotoUrl( entity );
         startDate = entity.getStartDate();
         endDate = entity.getEndDate();
+        monthlySalary = entity.getMonthlySalary();
+        monthlyLumpSumAllowance = entity.getMonthlyLumpSumAllowance();
+        currency = entity.getCurrency();
+        benefitDetails = entity.getBenefitDetails();
 
-        AppointmentResponse appointmentResponse = new AppointmentResponse( publicId, personDisplayName, personPublicId, occupationTitle, startDate, endDate, isActing );
+        AppointmentResponse appointmentResponse = new AppointmentResponse( publicId, personDisplayName, personPublicId, occupationTitle, occupationPublicId, startDate, endDate, monthlySalary, monthlyLumpSumAllowance, currency, isActing, benefitDetails, appointmentNote, personPhotoUrl );
 
         return appointmentResponse;
     }
@@ -82,5 +100,21 @@ public class AppointmentMapperImpl implements AppointmentMapper {
             return null;
         }
         return occupation.getTitle();
+    }
+
+    private UUID entityOccupationExternalId(Appointment appointment) {
+        Occupation occupation = appointment.getOccupation();
+        if ( occupation == null ) {
+            return null;
+        }
+        return occupation.getExternalId();
+    }
+
+    private String entityPersonPhotoUrl(Appointment appointment) {
+        Person person = appointment.getPerson();
+        if ( person == null ) {
+            return null;
+        }
+        return person.getPhotoUrl();
     }
 }

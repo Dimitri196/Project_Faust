@@ -2,13 +2,15 @@ package com.projectfaust.dto.response;
 
 import com.projectfaust.entity.enums.ClearanceLevel;
 import java.util.List;
+import java.util.UUID;
 
 public record ProfileResponse(
-        String publicId,
+        UUID id,
         String fullName,
+        String email,
         String role,
-        boolean isAdmin,
         ClearanceLevel clearance,
+        String status,
         List<String> techStack,
-        String status
+        boolean isAdmin
 ) {}

@@ -29,6 +29,12 @@ public class OccupationController {
         return new ResponseEntity<>(service.create(request), HttpStatus.CREATED);
     }
 
+    @GetMapping("/{publicId}")
+    @Operation(summary = "Get occupation by UUID", description = "Returns details of a specific position slot.")
+    public ResponseEntity<OccupationResponse> getOne(@PathVariable UUID publicId) {
+        return ResponseEntity.ok(service.getByPublicId(publicId));
+    }
+
     @GetMapping("/institution/{institutionId}")
     @Operation(summary = "Get occupations by institution", description = "Returns all positions belonging to a specific department.")
     public ResponseEntity<List<OccupationResponse>> getByInstitution(@PathVariable UUID institutionId) {
