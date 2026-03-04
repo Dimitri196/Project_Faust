@@ -1,6 +1,4 @@
-/**
- * GEOGRAPHIC & ORGANIZATIONAL HIERARCHY
- */ 
+
 export type LocationType = 
     | 'CONTINENT' 
     | 'COUNTRY' 
@@ -28,18 +26,12 @@ export interface LocationRequest {
     parentExternalId?: string;
 }
 
-/**
- * COMMON TYPES & ENUMS
- */
 export type HierarchicalLevel = 'NATIONAL' | 'REGIONAL' | 'LOCAL' | 'INTERNATIONAL' | 'SUB_LOCAL';
 export type InstitutionType = 'EXECUTIVE' | 'LEGISLATIVE' | 'JUDICIAL' | 'MILITARY' | 'INTELLIGENCE' | 'REGULATORY' | 'NGO' | 'PRIVATE';
 export type OccupationCategory = 'GOVERNANCE' | 'EXECUTIVE' | 'SPECIALIST' | 'OPERATIONAL' | 'TECHNICAL';
 export type EducationLevel = 'SECONDARY' | 'HIGHER_VOCATIONAL' | 'BACHELOR' | 'MASTER' | 'DOCTORATE';
 export type ClearanceLevel = 'LEVEL_1_PUBLIC' | 'LEVEL_2_INTERNAL' | 'LEVEL_3_CONFIDENTIAL' | 'LEVEL_4_SECRET' | 'LEVEL_5_TOP_SECRET';
 
-/**
- * INSTITUTION DOMAIN
- */
 export interface InstitutionResponse {
     publicId: string;
     name: string;
@@ -50,12 +42,21 @@ export interface InstitutionResponse {
     hasChildren: boolean;
     isStateOwned: boolean;
     description: string;
-    // Propojení s Location Engine
     locationId: string;
     locationName: string;
     fullLocationPath: LocationResponse[] | null;
     logoUrl: string | null;
     websiteUrl: string | null;
+}
+
+export interface IntelligenceReportResponse {
+    reportId: string;
+    personId: string;
+    personFullName: string;
+    analysis: string;
+    generatedAt: string;
+    aiModel: string;
+    riskLevel: number;
 }
 
 export interface InstitutionTreeResponse {
@@ -78,9 +79,6 @@ export interface InstitutionAscendedResponse {
     parent: InstitutionAscendedResponse | null;
 }
 
-/**
- * PERSON & AGENT DOMAIN
- */
 export interface PersonResponse {
     publicId: string;
     firstName: string;
@@ -94,10 +92,16 @@ export interface PersonResponse {
     phone: string;
     biography: string;
     photoUrl: string;
-    // Propojení s Location Engine (působiště/adresa)
     currentLocationId: string;
     currentLocationName: string;
     politicalAffiliation: string | null;
+    birthDate: string; 
+    deathDate: string | null;
+    gender: 'MALE' | 'FEMALE' | 'OTHER';
+    nationality: string;
+    placeOfBirth: string;
+    age: number;
+    clearanceLevel: ClearanceLevel;
 }
 
 export interface AgentOnboardingRequest {
@@ -107,9 +111,6 @@ export interface AgentOnboardingRequest {
     requiresFieldAccess: boolean;
 }
 
-/**
- * OCCUPATION & APPOINTMENT DOMAIN
- */
 export interface OccupationResponse {
     publicId: string;
     title: string;
@@ -135,6 +136,18 @@ export interface OccupationTreeResponse {
     subordinates: OccupationTreeResponse[];
 }
 
+export interface AppointmentRequest {
+    personPublicId: string;
+    occupationPublicId: string;
+    startDate: string;
+    endDate?: string | null;
+    monthlySalary: number;
+    monthlyLumpSumAllowance: number;
+    isActing: boolean;
+    benefitDetails: BenefitDetails;
+    appointmentNote?: string;
+}
+
 export interface AppointmentResponse {
     publicId: string;
     personDisplayName: string;
@@ -146,13 +159,9 @@ export interface AppointmentResponse {
     isActing: boolean;
     appointmentNote?: string;
     personPhotoUrl: string | null;
-    
-    // --- NOVÁ FINANČNÍ POLE ---
     monthlySalary: number;
     monthlyLumpSumAllowance: number;
     currency: string;
-
-    // --- STRUKTUROVANÉ BENEFITY ---
     benefitDetails: BenefitDetails | null;
 }
 
@@ -164,9 +173,6 @@ export interface BenefitDetails {
     diplomaticPassport: boolean;
 }
 
-/**
- * IDENTITY & ACCESS MANAGEMENT
- */
 export interface UserProfile {
     id: string;
     fullName: string;

@@ -20,5 +20,6 @@ public record AppointmentResponse(
         boolean isActing,
         Appointment.BenefitDetails benefitDetails,
         String appointmentNote,
-        String personPhotoUrl
+        String personPhotoUrl,
+        boolean isExOffoAccess
 ) {}

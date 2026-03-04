@@ -3,6 +3,7 @@ package com.projectfaust.mapper;
 import com.projectfaust.dto.request.PersonRequest;
 import com.projectfaust.dto.response.PersonResponse;
 import com.projectfaust.entity.Person;
+import com.projectfaust.entity.enums.ClearanceLevel;
 import com.projectfaust.entity.enums.EducationLevel;
 import com.projectfaust.entity.enums.Gender;
 import java.time.LocalDate;
@@ -14,7 +15,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-02-11T19:01:07+0100",
+    date = "2026-03-04T07:33:01+0100",
     comments = "version: 1.6.3, compiler: javac, environment: Java 25.0.1 (Eclipse Adoptium)"
 )
 @Component
@@ -39,6 +40,7 @@ public class PersonMapperImpl implements PersonMapper {
         person.politicalAffiliation( request.politicalAffiliation() );
         person.biography( request.biography() );
         person.photoUrl( request.photoUrl() );
+        person.clearanceLevel( request.clearanceLevel() );
         person.birthDate( request.birthDate() );
         person.gender( request.gender() );
         person.nationality( request.nationality() );
@@ -71,6 +73,7 @@ public class PersonMapperImpl implements PersonMapper {
         String nationality = null;
         String placeOfBirth = null;
         LocalDate deathDate = null;
+        ClearanceLevel clearanceLevel = null;
 
         publicId = entity.getExternalId();
         firstName = entity.getFirstName();
@@ -89,11 +92,12 @@ public class PersonMapperImpl implements PersonMapper {
         nationality = entity.getNationality();
         placeOfBirth = entity.getPlaceOfBirth();
         deathDate = entity.getDeathDate();
+        clearanceLevel = entity.getClearanceLevel();
 
         String displayName = entity.getFullName();
         Integer age = entity.getAge();
 
-        PersonResponse personResponse = new PersonResponse( publicId, firstName, lastName, titleBefore, titleAfter, displayName, age, educationLevel, fieldOfStudy, email, phone, biography, photoUrl, politicalAffiliation, birthDate, gender, nationality, placeOfBirth, deathDate );
+        PersonResponse personResponse = new PersonResponse( publicId, firstName, lastName, titleBefore, titleAfter, displayName, age, educationLevel, fieldOfStudy, email, phone, biography, photoUrl, politicalAffiliation, birthDate, gender, nationality, placeOfBirth, deathDate, clearanceLevel );
 
         return personResponse;
     }
@@ -129,6 +133,7 @@ public class PersonMapperImpl implements PersonMapper {
         entity.setPoliticalAffiliation( request.politicalAffiliation() );
         entity.setBiography( request.biography() );
         entity.setPhotoUrl( request.photoUrl() );
+        entity.setClearanceLevel( request.clearanceLevel() );
         entity.setBirthDate( request.birthDate() );
         entity.setGender( request.gender() );
         entity.setNationality( request.nationality() );

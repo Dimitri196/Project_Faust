@@ -15,7 +15,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
                 .csrf(csrf -> csrf.disable())
-                // 1. Tell Security to use the same CORS config as MVC
+
                 .cors(Customizer.withDefaults())
 
                 .authorizeHttpRequests(auth -> auth
@@ -24,7 +24,7 @@ public class SecurityConfig {
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/api/**",
-                                "/error" // <-- Added /error to prevent 401 on internal failures
+                                "/error"
                         ).permitAll()
                         .anyRequest().authenticated()
                 );

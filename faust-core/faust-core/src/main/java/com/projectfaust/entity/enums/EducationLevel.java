@@ -12,12 +12,12 @@ import lombok.RequiredArgsConstructor;
 public enum EducationLevel {
 
     /**
-     * Secondary education with a school-leaving examination.
+     * Secondary education with a school-leaving examination (e.g., High School Diploma).
      */
     SECONDARY(1, "Secondary", "HS"),
 
     /**
-     * Post-secondary non-university professional education (e.g., DiS.).
+     * Post-secondary non-university professional education (e.g., Associate degree, DiS.).
      */
     HIGHER_VOCATIONAL(2, "Higher Vocational", "HVE"),
 
@@ -28,17 +28,17 @@ public enum EducationLevel {
 
     /**
      * Graduate university degree (e.g., Mgr., Ing., M.A., M.Sc.)
-     * including medical and law professional doctorates (MUDr., JUDr.).
+     * including medical and law professional doctorates (MUDr., JUDr., PhDr.).
      */
     MASTER(4, "Master", "Masters"),
 
     /**
-     * Postgraduate research degree (e.g., Ph.D., Th.D., CSc.).
+     * Postgraduate research degree (e.g., Ph.D., Th.D., CSc., D.Sc.).
      */
     DOCTORATE(5, "Doctorate", "PhD");
 
     /**
-     * Numeric weight for sorting or filtering by seniority of education.
+     * Numeric weight for sorting or filtering by academic seniority.
      */
     private final int weight;
 
@@ -54,7 +54,7 @@ public enum EducationLevel {
 
     /**
      * Returns true if this education level is equal to or higher than the target.
-     * Useful for verifying qualification requirements for specific Nodes.
+     * Useful for verifying qualification requirements for specific Nodes or Roles.
      */
     public boolean satisfies(EducationLevel required) {
         return this.weight >= required.getWeight();

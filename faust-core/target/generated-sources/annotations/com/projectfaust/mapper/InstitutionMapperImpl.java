@@ -7,6 +7,7 @@ import com.projectfaust.dto.response.InstitutionTreeResponse;
 import com.projectfaust.dto.response.LocationResponse;
 import com.projectfaust.entity.Institution;
 import com.projectfaust.entity.Location;
+import com.projectfaust.entity.enums.ClearanceLevel;
 import com.projectfaust.entity.enums.HierarchicalLevel;
 import com.projectfaust.entity.enums.InstitutionType;
 import java.util.ArrayList;
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-02-11T19:01:07+0100",
+    date = "2026-03-04T07:33:01+0100",
     comments = "version: 1.6.3, compiler: javac, environment: Java 25.0.1 (Eclipse Adoptium)"
 )
 @Component
@@ -35,9 +36,10 @@ public class InstitutionMapperImpl implements InstitutionMapper {
         String locationName = null;
         boolean isStateOwned = false;
         String name = null;
-        String countryCode = null;
         HierarchicalLevel level = null;
         InstitutionType type = null;
+        ClearanceLevel clearanceLevel = null;
+        boolean active = false;
         String description = null;
         String logoUrl = null;
         String websiteUrl = null;
@@ -48,9 +50,10 @@ public class InstitutionMapperImpl implements InstitutionMapper {
         locationName = entityLocationName( entity );
         isStateOwned = entity.isStateOwned();
         name = entity.getName();
-        countryCode = entity.getCountryCode();
         level = entity.getLevel();
         type = entity.getType();
+        clearanceLevel = entity.getClearanceLevel();
+        active = entity.isActive();
         description = entity.getDescription();
         logoUrl = entity.getLogoUrl();
         websiteUrl = entity.getWebsiteUrl();
@@ -58,7 +61,7 @@ public class InstitutionMapperImpl implements InstitutionMapper {
         boolean hasChildren = !entity.getChildren().isEmpty();
         List<LocationResponse> fullLocationPath = null;
 
-        InstitutionResponse institutionResponse = new InstitutionResponse( publicId, name, countryCode, level, type, parentId, hasChildren, isStateOwned, description, locationId, locationName, fullLocationPath, logoUrl, websiteUrl );
+        InstitutionResponse institutionResponse = new InstitutionResponse( publicId, name, level, type, clearanceLevel, parentId, hasChildren, isStateOwned, active, description, locationId, locationName, fullLocationPath, logoUrl, websiteUrl );
 
         return institutionResponse;
     }
@@ -86,10 +89,11 @@ public class InstitutionMapperImpl implements InstitutionMapper {
         Institution.InstitutionBuilder institution = Institution.builder();
 
         institution.name( request.name() );
-        institution.countryCode( request.countryCode() );
         institution.level( request.level() );
         institution.type( request.type() );
+        institution.clearanceLevel( request.clearanceLevel() );
         institution.isStateOwned( request.isStateOwned() );
+        institution.active( request.active() );
         institution.description( request.description() );
         institution.logoUrl( request.logoUrl() );
         institution.websiteUrl( request.websiteUrl() );
@@ -104,9 +108,10 @@ public class InstitutionMapperImpl implements InstitutionMapper {
         }
 
         entity.setName( request.name() );
-        entity.setCountryCode( request.countryCode() );
         entity.setLevel( request.level() );
         entity.setType( request.type() );
+        entity.setClearanceLevel( request.clearanceLevel() );
+        entity.setActive( request.active() );
         entity.setDescription( request.description() );
         entity.setLogoUrl( request.logoUrl() );
         entity.setWebsiteUrl( request.websiteUrl() );
@@ -121,20 +126,24 @@ public class InstitutionMapperImpl implements InstitutionMapper {
         UUID publicId = null;
         List<InstitutionTreeResponse> children = null;
         boolean isStateOwned = false;
+        boolean active = false;
         String name = null;
         HierarchicalLevel level = null;
         InstitutionType type = null;
+        ClearanceLevel clearanceLevel = null;
         String description = null;
 
         publicId = entity.getExternalId();
         children = toTreeResponseList( entity.getChildren() );
         isStateOwned = entity.isStateOwned();
+        active = entity.isActive();
         name = entity.getName();
         level = entity.getLevel();
         type = entity.getType();
+        clearanceLevel = entity.getClearanceLevel();
         description = entity.getDescription();
 
-        InstitutionTreeResponse institutionTreeResponse = new InstitutionTreeResponse( publicId, name, level, type, description, isStateOwned, children );
+        InstitutionTreeResponse institutionTreeResponse = new InstitutionTreeResponse( publicId, name, level, type, clearanceLevel, description, isStateOwned, active, children );
 
         return institutionTreeResponse;
     }
@@ -148,20 +157,24 @@ public class InstitutionMapperImpl implements InstitutionMapper {
         UUID publicId = null;
         InstitutionAscendedResponse parent = null;
         boolean isStateOwned = false;
+        boolean active = false;
         String name = null;
         HierarchicalLevel level = null;
         InstitutionType type = null;
+        ClearanceLevel clearanceLevel = null;
         String description = null;
 
         publicId = entity.getExternalId();
         parent = toAscendedResponse( entity.getParent() );
         isStateOwned = entity.isStateOwned();
+        active = entity.isActive();
         name = entity.getName();
         level = entity.getLevel();
         type = entity.getType();
+        clearanceLevel = entity.getClearanceLevel();
         description = entity.getDescription();
 
-        InstitutionAscendedResponse institutionAscendedResponse = new InstitutionAscendedResponse( publicId, name, level, type, description, isStateOwned, parent );
+        InstitutionAscendedResponse institutionAscendedResponse = new InstitutionAscendedResponse( publicId, name, level, type, clearanceLevel, description, isStateOwned, active, parent );
 
         return institutionAscendedResponse;
     }

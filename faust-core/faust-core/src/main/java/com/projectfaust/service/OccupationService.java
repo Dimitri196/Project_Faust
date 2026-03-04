@@ -1,6 +1,7 @@
 package com.projectfaust.service;
 
 import com.projectfaust.dto.request.OccupationRequest;
+import com.projectfaust.dto.response.OccupationAscendedResponse;
 import com.projectfaust.dto.response.OccupationResponse;
 import com.projectfaust.dto.response.OccupationTreeResponse;
 import com.projectfaust.entity.Institution;
@@ -35,17 +36,14 @@ public class OccupationService {
 
         Occupation entity = mapper.toEntity(request);
 
-        // 1. Resolve Institution
         Institution institution = institutionRepository.findByExternalId(request.institutionPublicId())
                 .orElseThrow(() -> new EntityNotFoundException("Institution not found"));
         entity.setInstitution(institution);
 
-        // 2. Resolve Supervisor if provided
         if (request.reportsToPublicId() != null) {
             Occupation supervisor = occupationRepository.findByExternalId(request.reportsToPublicId())
                     .orElseThrow(() -> new EntityNotFoundException("Supervisor position not found"));
 
-            // Validate hierarchy
             hierarchyValidator.verifyNoCircularReference(entity, supervisor);
             entity.setReportsTo(supervisor);
         }
@@ -81,4 +79,13 @@ public class OccupationService {
                 .map(this::create)
                 .collect(Collectors.toList());
     }
+
+    @Transactional(readOnly = true)
+    public List<OccupationAscendedResponse> getSubordinates(UUID parentPublicId) {
+        log.info("Accessing subordinate projection for parent: {}", parentPublicId);
+
+        List<Occupation> subordinates = occupationRepository.findAllSubordinates(parentPublicId);
+        return mapper.toAscendedResponseList(subordinates);
+    }
+
 }

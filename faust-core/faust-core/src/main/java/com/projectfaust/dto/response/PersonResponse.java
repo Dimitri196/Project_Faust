@@ -1,5 +1,6 @@
 package com.projectfaust.dto.response;
 
+import com.projectfaust.entity.enums.ClearanceLevel;
 import com.projectfaust.entity.enums.EducationLevel;
 import com.projectfaust.entity.enums.Gender;
 import java.time.LocalDate;
@@ -24,5 +25,6 @@ public record PersonResponse(
         Gender gender,
         String nationality,
         String placeOfBirth,
-        LocalDate deathDate
+        LocalDate deathDate,
+        ClearanceLevel clearanceLevel
 ) {}

@@ -2,13 +2,18 @@ package com.projectfaust.entity;
 
 import com.projectfaust.entity.enums.ClearanceLevel;
 import jakarta.persistence.*;
-import lombok.*;
 import java.util.List;
 import java.util.UUID;
+import lombok.*;
 
+/**
+ * Represents an internal system operator or analyst within Project Faust.
+ * This entity manages authentication, authorization (RBAC), and security clearance levels.
+ */
 @Entity
 @Table(name = "users")
-@Getter @Setter
+@Getter
+@Setter
 @NoArgsConstructor
 public class User {
 
@@ -23,23 +28,43 @@ public class User {
     @Column(nullable = false, unique = true)
     private String email;
 
+    /**
+     * Primary functional role within the system (e.g., "ANALYST", "OPERATOR").
+     */
     private String role;
 
-    private boolean isAdmin; // Global bypass
+    /**
+     * Global administrative flag providing a bypass for standard security constraints.
+     */
+    private boolean isAdmin;
 
+    /**
+     * The security clearance level defining the sensitivity of data this user can access.
+     */
     @Enumerated(EnumType.STRING)
     private ClearanceLevel clearance;
 
-    private String status; // e.g., "OPERATIONAL"
+    /**
+     * Current account status (e.g., "OPERATIONAL", "SUSPENDED", "INACTIVE").
+     */
+    private String status;
 
-    @ElementCollection(fetch = FetchType.EAGER) // EAGER zajistí, že se data načtou hned s uživatelem
+    /**
+     * Technical competencies or specialized skills assigned to the operator.
+     * Fetched eagerly to ensure immediate availability for resource allocation.
+     */
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
             name = "user_tech_stack",
             joinColumns = @JoinColumn(name = "user_id")
     )
-    @Column(name = "technology") // Název sloupce s konkrétním stringem (např. "Java")
+    @Column(name = "technology")
     private List<String> techStack;
 
+    /**
+     * Hashed authentication credential.
+     * WARNING: This field must never be exposed in DTOs or public API responses.
+     */
     @Column(nullable = false)
-    private String password; // Musí být v entitě pro login, ale NIKDY v ProfileResponse
+    private String password;
 }

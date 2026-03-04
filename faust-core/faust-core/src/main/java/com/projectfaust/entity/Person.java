@@ -1,5 +1,6 @@
 package com.projectfaust.entity;
 
+import com.projectfaust.entity.enums.ClearanceLevel;
 import com.projectfaust.entity.enums.EducationLevel;
 import com.projectfaust.entity.enums.Gender;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -14,6 +15,8 @@ import org.hibernate.validator.constraints.URL;
 
 import java.time.LocalDate;
 import java.time.Period;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.UUID;
 
 /**
@@ -58,7 +61,6 @@ public class Person {
 
     private String fieldOfStudy;
 
-    @Column(unique = true)
     private String email;
 
     private String phone;
@@ -66,13 +68,27 @@ public class Person {
     @Column(name = "political_affiliation")
     private String politicalAffiliation;
 
-    @Column(length = 2000)
+    @Column(columnDefinition = "TEXT")
     private String biography;
 
     @Column(name = "photo_url", length = 500)
     @Schema(description = "Secure link to the subject's biometric profile image", example = "https://cdn.faust.gov/intel/photos/p-342.jpg")
     @URL(message = "Provided photo storage path must be a valid URL")
     private String photoUrl;
+
+    /**
+     * Odkaz na oficiální životopis nebo profil (např. na webu vlády nebo LinkedIn).
+     */
+    private String profileUrl;
+
+    /**
+     * Aktuální stupeň bezpečnostní prověrky dle NBÚ.
+     * Nutné pro validaci Appointmentu do citlivých pozic.
+     */
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    @Column(nullable = false)
+    private ClearanceLevel clearanceLevel = ClearanceLevel.LEVEL_1_PUBLIC;
 
     /**
      * Speciální sloupec spravovaný databází pro fulltextové vyhledávání.
@@ -131,4 +147,16 @@ public class Person {
 
         return sb.toString();
     }
+
+    /**
+     * Seznam všech jmenování (historie i současnost), která jsou navázána na tuto osobu.
+     * mappedBy = "person" odkazuje na pole 'person' ve třídě Appointment.
+     */
+    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Appointment> appointments = new ArrayList<>();
+
+
+    @OneToMany(mappedBy = "sourcePerson", cascade = CascadeType.ALL)
+    private List<PersonConnection> sourceConnections = new ArrayList<>();
 }

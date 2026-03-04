@@ -1,29 +1,42 @@
 spring:
   # Database Connection
   datasource:
-    url: jdbc:postgresql://localhost:5432/project_faust?client_encoding=UTF8
+    url: jdbc:postgresql://localhost:5432/project_faust?client_encoding=UTF8&reWriteBatchedInserts=true
     username: postgres
     password: Palesse123
     driver-class-name: org.postgresql.Driver
 
+  kafka:
+    consumer:
+      bootstrap-servers: localhost:9092
+      group-id: faust-intelligence-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: "*"
+
   # Liquibase Configuration
   liquibase:
-    # Path to your master changelog file
     change-log: classpath:db/changelog/db.changelog-master.yaml
     enabled: true
-    # Ensures Liquibase creates its own tracking tables if they don't exist
     default-schema: public
+
+  # Spring AI Configuration
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+    google:
+      api-key: ${GOOGLE_API_KEY:}
 
   # JPA / Hibernate 7 Settings
   jpa:
-    # Set to 'validate' so Hibernate checks the schema matches your entities
-    # but doesn't try to change it (Liquibase handles changes)
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
         dialect: org.hibernate.dialect.PostgreSQLDialect
         # Hibernate Envers for Audit Logging
         integration:
@@ -31,9 +44,10 @@ spring:
             enabled: true # Set to true if audit logging is needed
         # Performance optimization for batch inserts
         jdbc:
-          batch_size: 25
+          batch_size: 50
           order_inserts: true
           order_updates: true
+          batch_versioned_data: true
 
   # Security Configuration
   # Note: In modern Spring Boot, "security.enabled: false" is deprecated.
@@ -71,3 +85,10 @@ logging:
 # Server Configuration
 server:
   port: 8080
+
+faust:
+  hlidac-statu:
+    api-token: "fc1dba02a0dd465f8f568626472ece38"
+  topics:
+    raw-contracts: "ingest.hlidac.contracts"
+    anomalies: "analysis.anomalies"

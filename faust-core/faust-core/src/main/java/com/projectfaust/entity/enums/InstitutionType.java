@@ -19,7 +19,7 @@ public enum InstitutionType {
 
     /**
      * Law-making bodies of the state.
-     * Includes the Chamber of Deputies and the Senate.
+     * Includes the Parliament, Chamber of Deputies, and the Senate.
      */
     LEGISLATIVE("LEG", "Legislative Branch"),
 
@@ -43,7 +43,7 @@ public enum InstitutionType {
 
     /**
      * Secret services and counter-intelligence agencies.
-     * Includes BIS (Security Information Service) and Military Intelligence.
+     * Includes the Security Information Service (BIS) and Military Intelligence.
      */
     INTELLIGENCE("INT", "Intelligence Community"),
 
@@ -55,10 +55,17 @@ public enum InstitutionType {
 
     /**
      * Entities operating within the commercial sphere.
-     * Includes state-owned enterprises and private sector partners.
+     * Includes state-owned enterprises (SOEs) and private sector partners.
      */
     PRIVATE("PRIV", "Private Sector");
 
+    /**
+     * Short alphanumeric code for database indexing or reporting.
+     */
     private final String categoryCode;
+
+    /**
+     * Human-readable label for UI display.
+     */
     private final String displayName;
 }

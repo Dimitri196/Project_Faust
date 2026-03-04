@@ -13,7 +13,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
 
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -26,11 +25,16 @@ public class PersonService {
     public PersonResponse create(PersonRequest request) {
         log.info("Creating person: {} {}", request.firstName(), request.lastName());
 
-        if (request.email() != null && !request.email().isBlank() && repository.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("Email already exists: " + request.email());
+        String sanitizedEmail = sanitizeEmail(request.email());
+
+        if (sanitizedEmail != null && repository.existsByEmail(sanitizedEmail)) {
+            throw new IllegalArgumentException("Email already exists: " + sanitizedEmail);
         }
 
         Person person = mapper.toEntity(request);
+        // Ruční override po mapování pro jistotu
+        person.setEmail(sanitizedEmail);
+
         return mapper.toResponse(repository.save(person));
     }
 
@@ -51,13 +55,17 @@ public class PersonService {
         Person person = repository.findByExternalId(publicId)
                 .orElseThrow(() -> new EntityNotFoundException("Person not found"));
 
-        // Validace unikátnosti emailu při změně
-        if (request.email() != null && !request.email().equalsIgnoreCase(person.getEmail())
-                && repository.existsByEmail(request.email())) {
-            throw new IllegalArgumentException("New email already taken: " + request.email());
+        String sanitizedEmail = sanitizeEmail(request.email());
+
+        // Validace unikátnosti emailu při změně (pokud se liší od původního)
+        if (sanitizedEmail != null && !sanitizedEmail.equalsIgnoreCase(person.getEmail())
+                && repository.existsByEmail(sanitizedEmail)) {
+            throw new IllegalArgumentException("New email already taken: " + sanitizedEmail);
         }
 
         mapper.updateEntityFromRequest(request, person);
+        person.setEmail(sanitizedEmail); // Zajistíme null místo ""
+
         return mapper.toResponse(repository.save(person));
     }
 
@@ -71,27 +79,49 @@ public class PersonService {
     public List<PersonResponse> createBulk(List<PersonRequest> requests) {
         log.info("Commencing bulk ingestion: {} entries", requests.size());
 
-        // 1. Interní kontrola duplicit v seznamu
+        // 1. Interní kontrola duplicit v seznamu a příprava entit
         Set<String> processedEmails = new HashSet<>();
+        List<Person> entitiesToSave = new ArrayList<>();
+
         for (PersonRequest req : requests) {
-            if (req.email() != null && !processedEmails.add(req.email().toLowerCase())) {
-                throw new IllegalArgumentException("Duplicate email in request list: " + req.email());
+            String sanitizedEmail = sanitizeEmail(req.email());
+
+            // Kontrola duplicit uvnitř nahrávaného listu
+            if (sanitizedEmail != null) {
+                if (!processedEmails.add(sanitizedEmail)) {
+                    throw new IllegalArgumentException("Duplicate email in request list: " + sanitizedEmail);
+                }
+            }
+
+            Person entity = mapper.toEntity(req);
+            entity.setEmail(sanitizedEmail); // Vynutíme null místo ""
+            entitiesToSave.add(entity);
+        }
+
+        // 2. Hromadná kontrola proti existující databázi
+        if (!processedEmails.isEmpty()) {
+            List<String> existingEmails = repository.findAllByEmailIn(new ArrayList<>(processedEmails))
+                    .stream()
+                    .map(Person::getEmail)
+                    .toList();
+
+            if (!existingEmails.isEmpty()) {
+                throw new IllegalArgumentException("One or more emails already exist in database: " + existingEmails);
             }
         }
 
-        // 2. Kontrola proti databázi (hromadně)
-        List<String> emailsToCheck = requests.stream()
-                .map(PersonRequest::email)
-                .filter(Objects::nonNull)
-                .toList();
+        // 3. Uložení všech entit najednou
+        return mapper.toResponseList(repository.saveAll(entitiesToSave));
+    }
 
-        if (!emailsToCheck.isEmpty()) {
-            boolean anyExists = repository.findAllByEmailIn(emailsToCheck).size() > 0;
-            if (anyExists) throw new IllegalArgumentException("One or more emails already exist in database.");
+    /**
+     * Pomocná metoda pro normalizaci emailu.
+     * Převádí prázdné stringy na NULL pro zachování unikátnosti v DB.
+     */
+    private String sanitizeEmail(String email) {
+        if (email == null || email.isBlank()) {
+            return null;
         }
-
-        // 3. Uložení
-        List<Person> entities = requests.stream().map(mapper::toEntity).toList();
-        return mapper.toResponseList(repository.saveAll(entities));
+        return email.trim().toLowerCase();
     }
 }

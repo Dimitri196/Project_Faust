@@ -1,5 +1,6 @@
 package com.projectfaust.dto.response;
 
+import com.projectfaust.entity.enums.ClearanceLevel;
 import com.projectfaust.entity.enums.OccupationCategory;
 
 import java.util.List;
@@ -10,7 +11,9 @@ public record OccupationTreeResponse(
         String title,
         String code,
         OccupationCategory category,
+        ClearanceLevel requiredClearanceLevel,
         boolean isVacant,
+        boolean active,
         String rank,
         String currentOccupantName,
         List<OccupationTreeResponse> subordinates

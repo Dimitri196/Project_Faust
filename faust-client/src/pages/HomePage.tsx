@@ -1,7 +1,7 @@
 import React from 'react';
-import { 
-  Terminal, Shield, Database, Network, 
-  Activity, Lock, Eye, Globe, User 
+import {
+  Terminal, Shield, Database, Network,
+  Activity, Lock, Eye, Globe, User
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
@@ -12,7 +12,7 @@ const HomePage = () => {
 
   return (
     <div className="relative h-full w-full overflow-y-auto bg-brand-dark text-slate-200 flex flex-col items-center animate-in fade-in duration-1000 select-none custom-scrollbar">
-      
+
       {/* CRT SCANLINE & NOISE OVERLAY */}
       <div className="fixed inset-0 pointer-events-none z-50 overflow-hidden">
         {/* Scanlines */}
@@ -22,12 +22,12 @@ const HomePage = () => {
       </div>
 
       <div className="relative z-10 w-full max-w-7xl px-8 lg:px-12 flex flex-col min-h-full">
-        
+
         {/* TOP STATUS BAR - Brutalist style */}
         <div className="flex justify-between items-center py-4 border-b border-brand-border/30 w-full font-mono text-[10px]">
           <div className="flex items-center gap-6 tracking-[0.2em] text-slate-500">
             <span className="flex items-center gap-2">
-              <div className="w-1 h-1 bg-brand-accent animate-pulse" /> 
+              <div className="w-1 h-1 bg-brand-accent animate-pulse" />
               SYS_STATUS: <span className="text-brand-accent">NOMINAL</span>
             </span>
             <span className="hidden md:inline italic">LOC_NODE: PRG_BUNKER_01</span>
@@ -37,8 +37,6 @@ const HomePage = () => {
             <span className="text-slate-600">Enc: RSA_4096</span>
           </div>
         </div>
-
-       
 
         {/* HERO SECTION - The "Agency" Core */}
         <div className="flex-1 flex flex-col items-center justify-center py-16 text-center group">
@@ -52,7 +50,7 @@ const HomePage = () => {
             </div>
             <div className="h-[1px] w-8 bg-brand-border" />
           </div>
-          
+
           <div className="relative mb-6">
             <h1 className="text-8xl md:text-9xl font-black tracking-[-0.05em] text-white leading-none italic uppercase">
               PROJECT <span className="text-brand-accent drop-shadow-[0_0_15px_rgba(59,130,246,0.4)]">FAUST</span>
@@ -61,29 +59,29 @@ const HomePage = () => {
               Arch_Node: [DPT_77-X]
             </div>
           </div>
-          
+
           <div className="max-w-2xl text-left border-l-2 border-brand-accent/40 pl-6 py-2 mb-12">
             <p className="text-sm md:text-base text-slate-400 font-mono leading-relaxed tracking-tight">
-              <span className="text-white font-black">&gt; SYNOPSIS:</span> Multi-node intelligence orchestration. 
-              Real-time institutional mapping and personnel nexus reconstruction for <span className="text-slate-200">state security apparatus</span>. 
+              <span className="text-white font-black">&gt; SYNOPSIS:</span> Multi-node intelligence orchestration.
+              Real-time institutional mapping and personnel nexus reconstruction for <span className="text-slate-200">state security apparatus</span>.
               All interactions are logged under <span className="text-brand-accent/80 border-b border-brand-accent/20">Protocol_09</span>.
             </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-0 w-full max-w-md border border-brand-border p-1 bg-black/20">
-            <Link 
-              to="/terminal" 
+            <Link
+              to="/terminal"
               className="flex-1 group relative flex items-center justify-center gap-3 px-8 py-5 bg-brand-accent text-brand-dark font-black transition-all hover:bg-white duration-150"
             >
               <Terminal size={18} />
               <span className="tracking-[0.2em] uppercase text-xs font-mono">Omni_Search_Terminal</span>
             </Link>
-            <Link 
-  to="/protocols"
-  className="flex-1 px-8 py-5 bg-transparent text-slate-500 hover:text-white hover:bg-white/5 border-l border-brand-border transition-all font-mono text-[10px] uppercase tracking-[0.3em] font-black flex items-center justify-center"
->
-  View_Protocols
-</Link>
+            <Link
+              to="/protocols"
+              className="flex-1 px-8 py-5 bg-transparent text-slate-500 hover:text-white hover:bg-white/5 border-l border-brand-border transition-all font-mono text-[10px] uppercase tracking-[0.3em] font-black flex items-center justify-center"
+            >
+              View_Protocols
+            </Link>
           </div>
         </div>
 
@@ -98,7 +96,7 @@ const HomePage = () => {
         <div className="py-8 border-t border-brand-border/20 flex flex-col md:flex-row justify-between items-center gap-4 opacity-40 font-mono text-[8px] uppercase tracking-[0.4em]">
           <div className="flex gap-8 text-slate-400">
             <span className="flex items-center gap-2">
-              <Activity size={10} className="text-brand-success animate-pulse" /> 
+              <Activity size={10} className="text-brand-success animate-pulse" />
               UPLINK: ACTIVE
             </span>
             <span>DATA_INTEGRITY: 100%</span>

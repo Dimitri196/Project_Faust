@@ -1,4 +1,4 @@
-package com.projectfaust.dto;
+package com.projectfaust.dto.external;
 
 import com.projectfaust.entity.enums.LocationType;
 import java.util.List;

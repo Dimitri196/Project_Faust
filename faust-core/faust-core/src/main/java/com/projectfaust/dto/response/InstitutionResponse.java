@@ -1,5 +1,6 @@
 package com.projectfaust.dto.response;
 
+import com.projectfaust.entity.enums.ClearanceLevel;
 import com.projectfaust.entity.enums.HierarchicalLevel;
 import com.projectfaust.entity.enums.InstitutionType;
 
@@ -9,12 +10,13 @@ import java.util.UUID;
 public record InstitutionResponse(
         UUID publicId,
         String name,
-        String countryCode,
         HierarchicalLevel level,
         InstitutionType type,
+        ClearanceLevel clearanceLevel,
         UUID parentId,
         boolean hasChildren,
         boolean isStateOwned,
+        boolean active,
         String description,
         UUID locationId,
         String locationName,

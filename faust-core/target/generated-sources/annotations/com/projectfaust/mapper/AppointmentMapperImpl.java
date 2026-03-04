@@ -14,7 +14,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-02-11T19:01:07+0100",
+    date = "2026-03-04T07:33:02+0100",
     comments = "version: 1.6.3, compiler: javac, environment: Java 25.0.1 (Eclipse Adoptium)"
 )
 @Component
@@ -34,6 +34,7 @@ public class AppointmentMapperImpl implements AppointmentMapper {
         boolean isActing = false;
         String appointmentNote = null;
         String personPhotoUrl = null;
+        boolean isExOffoAccess = false;
         LocalDate startDate = null;
         LocalDate endDate = null;
         BigDecimal monthlySalary = null;
@@ -52,6 +53,7 @@ public class AppointmentMapperImpl implements AppointmentMapper {
         isActing = entity.isActing();
         appointmentNote = entity.getAppointmentNote();
         personPhotoUrl = entityPersonPhotoUrl( entity );
+        isExOffoAccess = entity.isExOffoAccess();
         startDate = entity.getStartDate();
         endDate = entity.getEndDate();
         monthlySalary = entity.getMonthlySalary();
@@ -59,7 +61,7 @@ public class AppointmentMapperImpl implements AppointmentMapper {
         currency = entity.getCurrency();
         benefitDetails = entity.getBenefitDetails();
 
-        AppointmentResponse appointmentResponse = new AppointmentResponse( publicId, personDisplayName, personPublicId, occupationTitle, occupationPublicId, startDate, endDate, monthlySalary, monthlyLumpSumAllowance, currency, isActing, benefitDetails, appointmentNote, personPhotoUrl );
+        AppointmentResponse appointmentResponse = new AppointmentResponse( publicId, personDisplayName, personPublicId, occupationTitle, occupationPublicId, startDate, endDate, monthlySalary, monthlyLumpSumAllowance, currency, isActing, benefitDetails, appointmentNote, personPhotoUrl, isExOffoAccess );
 
         return appointmentResponse;
     }

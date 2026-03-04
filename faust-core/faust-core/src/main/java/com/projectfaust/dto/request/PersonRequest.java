@@ -1,5 +1,6 @@
 package com.projectfaust.dto.request;
 
+import com.projectfaust.entity.enums.ClearanceLevel;
 import com.projectfaust.entity.enums.EducationLevel;
 import com.projectfaust.entity.enums.Gender;
 import jakarta.validation.constraints.Email;
@@ -23,5 +24,6 @@ public record PersonRequest(
         Gender gender,
         String nationality,
         String placeOfBirth,
-        LocalDate deathDate
+        LocalDate deathDate,
+        ClearanceLevel clearanceLevel
 ) {}

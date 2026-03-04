@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './context/AuthContext';
+import { useParams } from 'react-router-dom';
 
 // --- COMPONENTS ---
 import Sidebar from './components/Sidebar';
@@ -20,11 +21,21 @@ import ArchivePage from './pages/ArchivePage';
 import OnboardingPage from './pages/OnboardingPage';
 
 // --- GEOSPATIAL PAGES ---
-import LocationPage from './pages/LocationPage'; // Tento používá /api/v1/locations/search
-import LocationDetailPage from './pages/LocationDetailPage'; // Tento používá /api/v1/locations/{id}
+import LocationPage from './pages/LocationPage'; 
+import LocationDetailPage from './pages/LocationDetailPage'; 
 
 import GlobalSearchTerminal from './pages/GlobalSearchTerminal';
 import SystemProtocols from './pages/SystemProtocols';
+
+// @ts-ignore
+import IntelligenceTerminal from './components/ai/IntelligenceTerminal.jsx';
+
+// --- HELPER WRAPPER ---
+// Vytáhne 'id' z URL (/intelligence/123) a předá ho jako subjectId do HUD komponenty
+const IntelligencePageWrapper = () => {
+  const { id } = useParams(); 
+  return <IntelligenceTerminal subjectId={id} />;
+};
 
 function App() {
   const { isAuthenticated, user, isLoading } = useAuth();
@@ -45,9 +56,11 @@ function App() {
         <div className="pointer-events-none absolute inset-0 z-50 opacity-[0.03] mix-blend-overlay bg-[url('https://www.transparenttextures.com/patterns/stardust.png')]" />
         <div className="pointer-events-none absolute inset-0 z-50 opacity-10 bg-[linear-gradient(rgba(18,16,16,0)_50%,rgba(0,0,0,0.1)_50%),linear-gradient(90deg,rgba(255,0,0,0.03),rgba(0,255,0,0.01),rgba(0,0,255,0.03))] bg-[length:100%_3px,3px_100%]" />
 
+        {/* NAVIGATION */}
         {isAuthenticated && <Sidebar />}
 
         <main className="relative flex-1 overflow-hidden">
+          {/* UI CORNERS */}
           {isAuthenticated && (
             <>
               <div className="absolute top-0 left-0 w-4 h-4 border-t border-l border-brand-accent/30 z-20 pointer-events-none" />
@@ -58,41 +71,42 @@ function App() {
           )}
 
           <Routes>
+            {/* AUTH */}
             <Route path="/login" element={!isAuthenticated ? <LoginPage /> : <Navigate to="/" />} />
             <Route path="/" element={isAuthenticated ? <HomePage /> : <Navigate to="/login" />} />
 
-            {/* OMNI-SEARCH TERMINAL */}
+            {/* SYSTEM TERMINALS */}
             <Route path="/terminal" element={isAuthenticated ? <GlobalSearchTerminal /> : <Navigate to="/login" />} />
             <Route path="/protocols" element={isAuthenticated ? <SystemProtocols /> : <Navigate to="/login" />} />
 
-            {/* PERSONÁL */}
+            {/* PERSONNEL & INTELLIGENCE HUD */}
             <Route path="/personnel" element={isAuthenticated ? <SubjectRegistry /> : <Navigate to="/login" />} />
             <Route path="/personnel/:id" element={isAuthenticated ? <PersonDossier /> : <Navigate to="/login" />} />
+            <Route path="/intelligence/:id" element={isAuthenticated ? <IntelligencePageWrapper /> : <Navigate to="/login" />} />
 
-            {/* INSTITUCE */}
+            {/* INSTITUTIONS */}
             <Route path="/institutions" element={isAuthenticated ? <InstitutionsPage /> : <Navigate to="/login" />} />
             <Route path="/institutions/:id" element={isAuthenticated ? <InstitutionDetail /> : <Navigate to="/login" />} />
 
-            {/* LOKALITY (Zde byla chyba) */}
-            {/* 1. Hlavní přehled (Registry), který volá tvůj /search endpoint */}
+            {/* LOCATIONS */}
             <Route path="/locations" element={isAuthenticated ? <LocationPage /> : <Navigate to="/login" />} />
-
-            {/* 2. Detail konkrétní lokace */}
             <Route path="/locations/:id" element={isAuthenticated ? <LocationDetailPage /> : <Navigate to="/login" />} />
 
-            {/* OSTATNÍ */}
+            {/* OCCUPATIONS & HIERARCHY */}
             <Route path="/occupations" element={isAuthenticated ? <OccupationsPage /> : <Navigate to="/login" />} />
             <Route path="/occupations/:id" element={isAuthenticated ? <OccupationDetail /> : <Navigate to="/login" />} />
             <Route path="/hierarchy" element={isAuthenticated ? <HierarchyPage /> : <Navigate to="/login" />} />
+            
+            {/* AGENTS & PROFILE */}
             <Route path="/archive" element={isAuthenticated ? <ArchivePage /> : <Navigate to="/login" />} />
             <Route path="/agents/:id" element={isAuthenticated ? <AgentProfilePage /> : <Navigate to="/login" />} />
             <Route path="/profile" element={isAuthenticated ? <UserProfilePage /> : <Navigate to="/login" />} />
             <Route path="/onboard" element={isAuthenticated && user?.isAdmin ? <OnboardingPage /> : <Navigate to="/" />} />
 
-            {/* 404 */}
+            {/* 404 - SECTOR NOT FOUND */}
             <Route path="*" element={
               <div className="flex h-full items-center justify-center p-10 bg-black/40 backdrop-blur-sm">
-                <div className="border border-red-500/20 bg-red-500/5 p-12 text-center animate-in zoom-in duration-300">
+                <div className="border border-red-500/20 bg-red-500/5 p-12 text-center animate-in zoom-in duration-300 shadow-[0_0_50px_rgba(239,68,68,0.1)]">
                   <div className="inline-block p-4 border border-red-500 mb-6 bg-red-500/10 text-red-600 font-black text-6xl font-mono uppercase tracking-tighter">
                     404
                   </div>

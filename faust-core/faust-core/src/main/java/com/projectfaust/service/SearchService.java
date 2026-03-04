@@ -5,13 +5,19 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.Query;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
 import java.text.Normalizer;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
+import lombok.extern.slf4j.Slf4j;
 
+
+/**
+ * Service providing high-performance hybrid search capabilities across the Project Faust registry.
+ * Combines PostgreSQL Full-Text Search (FTS) with weighted pattern matching.
+ */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class SearchService {
@@ -19,29 +25,30 @@ public class SearchService {
     private final EntityManager entityManager;
 
     /**
-     * Performs a high-performance hybrid search across institutions, people, and occupations.
-     * Combines Postgres Full-Text Search (TSVECTOR) with Trigram-like fuzzy matching.
+     * Executes a hybrid search across institutions, personnel, and occupations.
+     * Utilizes TSVECTOR for linguistics and trigram-inspired LIKE patterns for partial matches.
+     *
+     * @param query  The raw search string provided by the user.
+     * @param vector Filter for a specific data category (e.g., 'PERSON', 'INSTITUTION') or 'ALL'.
+     * @return A ranked list of search results.
      */
+    @SuppressWarnings("unchecked")
     public List<GlobalSearchResponse> performGlobalSearch(String query, String vector) {
         if (query == null || query.trim().isEmpty()) {
             return List.of();
         }
 
-        // 1. Normalize query (remove diacritics for the 'simple' dictionary)
         String rawQuery = normalizeString(query.trim());
 
-        // 2. Format for Full Text Search (Prefix matching for each word)
-        // Example: "Jaroslav Hrbek" -> "Jaroslav:* & Hrbek:*"
+        // Prepare TSQuery: "John Doe" -> "John:* & Doe:*" for partial word matching
         String tsQuery = Arrays.stream(rawQuery.split("\\s+"))
                 .filter(word -> word.length() >= 2)
                 .map(word -> word + ":*")
                 .collect(Collectors.joining(" & "));
 
-        // If the query is too short, we fall back to a simpler pattern
         if (tsQuery.isEmpty()) tsQuery = rawQuery + ":*";
 
-        // 3. The Cinematic Hybrid SQL
-        // We calculate rank based on: TS_RANK (40%), Prefix Match (40%), Substring Match (20%)
+        // SQL logic: Ranks results based on FTS relevance (2.0), Prefix (1.5), and Substring (0.5)
         String sql = """
             SELECT id, display_name, category, sub_label, 
                    (ts_rank(search_vector, to_tsquery('simple', unaccent(:tsQuery))) * 2.0) + 
@@ -64,7 +71,6 @@ public class SearchService {
         nativeQuery.setParameter("prefixQuery", rawQuery + "%");
         nativeQuery.setParameter("vectorFilter", vector == null ? "ALL" : vector.toUpperCase());
 
-        @SuppressWarnings("unchecked")
         List<Object[]> results = nativeQuery.getResultList();
 
         return results.stream()
@@ -73,42 +79,40 @@ public class SearchService {
     }
 
     /**
-     * Safely maps a raw database row to a GlobalSearchResponse.
-     * Handles potential ClassCastExceptions for UUID and Numeric types.
+     * Maps raw database records to the GlobalSearchResponse DTO.
+     * Ensures defensive type conversion for diverse database return types.
      */
     private GlobalSearchResponse mapToResponse(Object[] row) {
         return new GlobalSearchResponse(
-                convertToUUID(row[0]),                       // ID (UUID)
+                convertToUUID(row[0]),                       // ID
                 (String) row[1],                             // Display Name
                 (String) row[2],                             // Category
                 (String) row[3],                             // Sub Label
-                row[4] != null ? ((Number) row[4]).doubleValue() : 0.0 // Rank
+                row[4] != null ? ((Number) row[4]).doubleValue() : 0.0 // Relevance Rank
         );
     }
 
     /**
-     * Converts various DB types (String, UUID, byte[]) to java.util.UUID.
-     * Prevents ClassCastException: Long cannot be cast to UUID.
+     * Facilitates type-safe conversion of ID objects to java.util.UUID.
+     * Handles variations in JDBC driver behavior (Strings vs. UUID vs. byte[]).
      */
     private UUID convertToUUID(Object val) {
         if (val == null) return null;
         if (val instanceof UUID) return (UUID) val;
         if (val instanceof String) return UUID.fromString((String) val);
         if (val instanceof byte[]) {
-            // Some drivers return UUID as bytes
             return UUID.nameUUIDFromBytes((byte[]) val);
         }
 
-        // If we still get a Long here, it means the VIEW is returning a numeric ID
-        // instead of a UUID. Check the global_search_view definition!
         throw new IllegalArgumentException(
-                "SearchService Error: Expected UUID compatible type, but got " + val.getClass().getName() +
-                        ". Ensure your database view casts 'id' to UUID."
+                "SearchService Integrity Error: Expected UUID-compatible type, but received " + val.getClass().getName() +
+                        ". Verify that the 'global_search_view' casts the 'id' column to UUID."
         );
     }
 
     /**
-     * Standardizes string for matching (e.g., "Dvořák" -> "Dvorak")
+     * Normalizes strings by removing diacritics and combining marks (e.g., "Dvořák" -> "Dvorak").
+     * Crucial for consistent searching across phonetic variations.
      */
     private String normalizeString(String input) {
         if (input == null) return "";

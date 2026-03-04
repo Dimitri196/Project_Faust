@@ -1,7 +1,6 @@
 package com.projectfaust.entity;
 
-
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.projectfaust.entity.enums.ClearanceLevel;
 import com.projectfaust.entity.enums.HierarchicalLevel;
 import com.projectfaust.entity.enums.InstitutionType;
 import com.projectfaust.validator.Hierarchical;
@@ -12,12 +11,23 @@ import org.hibernate.envers.Audited;
 import org.hibernate.envers.NotAudited;
 import org.hibernate.type.SqlTypes;
 
+import java.time.OffsetDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Entita reprezentující organizační uzel v projektu Faust.
+ * Mapuje státní úřady, ministerstva, tajné služby i soukromé subjekty zapojené do vládní agendy.
+ * Umožňuje rekurzivní vnořování (např. Úřad vlády -> Sekce -> Odbor -> Oddělení).
+ *
+ * @author Dimitri / Project Faust
+ */
 @Entity
-@Table(name = "institutions")
+@Table(name = "institutions", indexes = {
+        @Index(name = "idx_inst_external_id", columnList = "externalId"),
+        @Index(name = "idx_inst_type", columnList = "type")
+})
 @Audited
 @Getter
 @Setter
@@ -30,33 +40,62 @@ public class Institution implements Hierarchical<Institution> {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    /**
+     * Unikátní veřejný identifikátor pro API a frontendové komponenty (např. Dossier).
+     */
+    @Builder.Default
+    @Column(nullable = false, unique = true, updatable = false)
+    @JdbcTypeCode(SqlTypes.UUID)
+    private UUID externalId = UUID.randomUUID();
+
+    /**
+     * Oficiální název instituce.
+     */
     @Column(nullable = false, unique = true)
     private String name;
 
-    @Builder.Default
-    @Column(nullable = false, unique = true, updatable = false)
-    @JdbcTypeCode(SqlTypes.UUID) // Ensures Postgres uses the native 'uuid' type
-    private UUID externalId = UUID.randomUUID();
-
-    private String countryCode;
-
-    /** * Konec countryCode. Nyní odkazujeme na uzel v mapě světa.
-     * Může to být COUNTRY (Česko) nebo až SUBLOCATION (Místnost 404).
+    /**
+     * Vazba na geografickou páteř.
+     * Určuje fyzické sídlo instituce (např. Strakova akademie).
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "location_id")
     private Location location;
 
+    /**
+     * Rozlišuje úroveň v rámci státní/organizační správy (NATIONAL, REGIONAL, LOCAL).
+     */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private HierarchicalLevel level;
 
+    /**
+     * Kategorizace instituce (EXECUTIVE, LEGISLATIVE, INTELLIGENCE, PRIVATE_SECTOR).
+     */
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false)
     private InstitutionType type;
 
-    @JsonProperty("isStateOwned")
+    /**
+     * Úroveň utajení instituce.
+     * Určuje, který uživatel systému Faust má právo vidět detaily této organizace.
+     */
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    @Column(nullable = false)
+    private ClearanceLevel clearanceLevel = ClearanceLevel.LEVEL_1_PUBLIC;
+
+    /**
+     * Příznak, zda jde o subjekt přímo ovládaný nebo vlastněný státem.
+     */
+    @Builder.Default
     private boolean isStateOwned = false;
+
+    /**
+     * Indikátor, zda instituce aktuálně existuje a plní svou funkci.
+     */
+    @Builder.Default
+    private boolean active = true;
 
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
@@ -66,16 +105,33 @@ public class Institution implements Hierarchical<Institution> {
 
     @Column(name = "website_url", length = 512)
     private String websiteUrl;
-    // --- HIERARCHY ---
 
+    // --- HIERARCHIE ---
+
+    /**
+     * Nadřazená instituce (např. Ministerstvo jako rodič pro podřízený úřad).
+     */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Institution parent;
 
+    /**
+     * Podřízené organizační složky.
+     */
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL, orphanRemoval = true)
-    @NotAudited
-    @Builder.Default // Required so Builder doesn't make this null
+    @NotAudited // Historii vazeb řeší strana "ManyToOne", seznam dětí v auditu nepotřebujeme
+    @Builder.Default
     private List<Institution> children = new ArrayList<>();
+
+    // --- AUDIT METADATA ---
+
+    @Column(updatable = false)
+    private OffsetDateTime createdAt;
+
+    @PrePersist
+    protected void onCreate() {
+        createdAt = OffsetDateTime.now();
+    }
 
     // --- HELPER METHODS ---
 
@@ -90,5 +146,11 @@ public class Institution implements Hierarchical<Institution> {
     }
 
     @Override
+    public UUID getExternalId() { return this.externalId; }
+
+    @Override
     public String getName() { return this.name; }
+
+    @Override
+    public Institution getParent() { return this.parent; }
 }

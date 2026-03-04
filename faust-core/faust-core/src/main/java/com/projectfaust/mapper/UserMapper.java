@@ -4,19 +4,33 @@ import com.projectfaust.dto.response.ProfileResponse;
 import com.projectfaust.entity.User;
 import org.springframework.stereotype.Component;
 
+/**
+ * Component responsible for transforming internal System Operators and Analysts
+ * from persistent entities into secure Profile DTOs.
+ */
 @Component
 public class UserMapper {
 
+    /**
+     * Maps a User entity to a ProfileResponse.
+     * Ensures that sensitive internal fields (like password hashes or internal audit logs)
+     * are excluded while providing the necessary operational context for the UI.
+     *
+     * @param user The internal system user entity.
+     * @return A ProfileResponse containing identity, clearance, and role data.
+     */
     public ProfileResponse toResponse(User user) {
+        if (user == null) return null;
+
         return new ProfileResponse(
-                user.getId(),                // 1. UUID id
-                user.getFullName(),          // 2. String fullName
-                user.getEmail(),             // 3. String email (Tady ti v kódu chyběl!)
-                user.getRole(),              // 4. String role
-                user.getClearance(),         // 5. ClearanceLevel clearance
-                user.getStatus(),            // 6. String status
-                user.getTechStack(),         // 7. List<String> techStack
-                user.isAdmin()               // 8. boolean isAdmin
+                user.getId(),
+                user.getFullName(),
+                user.getEmail(),
+                user.getRole(),
+                user.getClearance(),
+                user.getStatus(),
+                user.getTechStack(),
+                user.isAdmin()
         );
     }
 }

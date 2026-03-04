@@ -5,7 +5,7 @@ import lombok.RequiredArgsConstructor;
 
 /**
  * Defines the functional nature of an occupation across both public and private sectors.
- * This categorization allows for cross-sector analysis of power and responsibility.
+ * This categorization enables cross-sector analysis of power, responsibility, and influence.
  */
 @Getter
 @RequiredArgsConstructor
@@ -20,7 +20,7 @@ public enum OccupationCategory {
 
     /**
      * Active leadership, administration, and executive decision-making.
-     * Public: Ministers, Prime Ministers, Mayors, Directors of State Agencies.
+     * Public: Ministers, Prime Ministers, Mayors, Agency Directors.
      * Private: CEOs, CTOs, Managing Directors.
      */
     EXECUTIVE(4, "Executive Leadership"),
@@ -40,10 +40,17 @@ public enum OccupationCategory {
     OPERATIONAL(2, "Operations & Service"),
 
     /**
-     * Support functions, maintenance, and logistics.
+     * Essential support functions, maintenance, and logistics.
      */
     TECHNICAL(1, "Technical & Support");
 
+    /**
+     * Numeric rank used to measure the level of influence or authority (5 = highest).
+     */
     private final int authorityRank;
+
+    /**
+     * Human-readable label for UI display.
+     */
     private final String displayName;
 }
