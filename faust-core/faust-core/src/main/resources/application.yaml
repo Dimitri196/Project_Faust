@@ -3,7 +3,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/project_faust?client_encoding=UTF8&reWriteBatchedInserts=true
     username: postgres
-    password: Palesse123
+    password: 
     driver-class-name: org.postgresql.Driver
 
   kafka:
