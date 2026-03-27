@@ -15,9 +15,11 @@ import java.util.List;
 import java.util.UUID;
 
 /**
- * Entita reprezentující prostorový uzel v rámci projektu Faust.
- * Umožňuje mapování od geopolitických celků (státy) až po specifické místnosti v utajených objektech.
- * Podporuje hierarchické uspořádání pro sledování vnořených struktur (např. Budova -> Patro -> Kancl).
+ * Entity representing a spatial node within the Faust project.
+ * Enables mapping from geo-political entities (countries) down to
+ * specific rooms within classified facilities.
+ * * Supports hierarchical organization for tracking nested structures
+ * (e.g., Building -> Floor -> Office).
  *
  * @author Dimitri / Project Faust
  */
@@ -39,8 +41,8 @@ public class Location implements Hierarchical<Location> {
     private Long id;
 
     /**
-     * Unikátní veřejný identifikátor pro integraci s externími systémy a frontendem.
-     * Generován při vytvoření, neměnný.
+     * Unique public identifier for integration with external systems and the frontend.
+     * Generated upon creation, immutable.
      */
     @Builder.Default
     @Column(nullable = false, unique = true, updatable = false)
@@ -48,63 +50,63 @@ public class Location implements Hierarchical<Location> {
     private UUID externalId = UUID.randomUUID();
 
     /**
-     * Oficiální název lokace (např. 'Strakova akademie' nebo 'Objekt K-12').
+     * Official name of the location (e.g., 'Strakova Academy' or 'Facility K-12').
      */
     @Column(nullable = false)
     private String name;
 
     /**
-     * Kategorizace lokace (COUNTRY, CITY, BUILDING, ROOM, SECRET_FACILITY).
+     * Categorization of the location (COUNTRY, CITY, BUILDING, ROOM, SECRET_FACILITY).
      */
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private LocationType type;
 
     /**
-     * Kód ISO 3166-1 alpha-2 pro státy, případně interní kódování pro utajené oblasti.
+     * ISO 3166-1 alpha-2 code for countries, or internal coding for classified areas.
      */
     private String isoCode;
 
     /**
-     * Geografická šířka v desítkové soustavě. Klíčové pro mapové vizualizace ve Faust UI.
+     * Latitude in decimal degrees. Crucial for map visualizations in the Faust UI.
      */
     private Double latitude;
 
     /**
-     * Geografická délka v desítkové soustavě.
+     * Longitude in decimal degrees.
      */
     private Double longitude;
 
     /**
-     * Bezpečnostní úroveň přístupu do lokace (např. 0 = Veřejná, 4 = Přísně tajná).
-     * Určuje viditelnost v Dossieru pro různé úrovně uživatelů.
+     * Security clearance level for the location (e.g., 0 = Public, 4 = Top Secret).
+     * Determines visibility in the Dossier for different user clearance levels.
      */
-    @Enumerated(EnumType.STRING) // Ukládá text (PUBLIC, SECRET), což je čitelnější pro DB adminy
+    @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private ClearanceLevel clearanceLevel = ClearanceLevel.LEVEL_1_PUBLIC;
 
     /**
-     * Indikátor, zda je lokace aktuálně aktivní/používaná.
+     * Indicator whether the location is currently active or in use.
      */
     @Builder.Default
     private boolean active = true;
 
     /**
-     * Nadřazená lokace v hierarchii.
+     * Parent location in the spatial hierarchy.
      */
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "parent_id")
     private Location parent;
 
     /**
-     * Seznam podřízených lokací (místnosti v budově, budovy v areálu).
+     * List of child locations (e.g., rooms within a building, buildings within a facility).
      */
     @Builder.Default
     @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
     private List<Location> children = new ArrayList<>();
 
     /**
-     * Čas vytvoření záznamu pro účely auditní stopy.
+     * Timestamp of record creation for audit trail purposes.
      */
     @Column(updatable = false)
     private OffsetDateTime createdAt;
@@ -114,7 +116,7 @@ public class Location implements Hierarchical<Location> {
         createdAt = OffsetDateTime.now();
     }
 
-    // --- Implementace Hierarchical interface ---
+    // --- Hierarchical interface implementation ---
 
     @Override
     public UUID getExternalId() {

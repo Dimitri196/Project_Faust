@@ -4,12 +4,15 @@ import com.projectfaust.dto.request.LocationRequest;
 import com.projectfaust.dto.response.LocationResponse;
 import com.projectfaust.entity.Location;
 import com.projectfaust.entity.enums.ClearanceLevel;
+import com.projectfaust.entity.filters.LocationFilter;
 import com.projectfaust.mapper.LocationMapper;
 import com.projectfaust.repository.LocationRepository;
 import com.projectfaust.specification.LocationSpecifications;
 import com.projectfaust.validator.HierarchyValidator;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -36,34 +39,31 @@ public class LocationService {
     public LocationResponse createLocation(LocationRequest request) {
         log.info("FAUST_GEO: Creating node '{}' of type {}", request.name(), request.type());
 
-        // 1. Mapování (Ujisti se, že mapper zná rozdíl mezi 'clearance' v requestu a 'clearanceLevel' v entitě)
         Location location = locationMapper.toEntity(request);
 
         if (request.parentExternalId() != null) {
             Location parent = locationRepository.findByExternalId(request.parentExternalId())
                     .orElseThrow(() -> new EntityNotFoundException("PARENT_NOT_FOUND: " + request.parentExternalId()));
 
-            // 2. Validace cyklů (Využívá tvůj generický HierarchyValidator)
+            // Validace cyklů
             hierarchyValidator.verifyNoCircularReference(location, parent);
 
-            // 3. Validace granularity (NOVÉ)
-            // Brání vytvoření COUNTRY pod CITY apod.
+            // Validace granularity
             if (!location.getType().isValidChildOf(parent.getType())) {
                 throw new IllegalStateException(String.format(
-                        "GRANULARITY_VIOLATION: Cannot place %s under %s. Logic: child granularity must be > parent granularity.",
+                        "GRANULARITY_VIOLATION: Cannot place %s under %s.",
                         location.getType(), parent.getType()));
             }
 
             location.setParent(parent);
 
-            // 4. Bezpečnostní pojistka (Security Inheritance)
+            // Security Inheritance: Potomek nesmí mít nižší prověrku než rodič
             if (location.getClearanceLevel().getWeight() < parent.getClearanceLevel().getWeight()) {
                 log.warn("FAUST_GEO: Elevating clearance of '{}' to match parent level: {}",
                         location.getName(), parent.getClearanceLevel());
                 location.setClearanceLevel(parent.getClearanceLevel());
             }
         } else {
-            // Fallback pro root uzly (pokud není zadán clearance, nastavíme Public)
             if (location.getClearanceLevel() == null) {
                 location.setClearanceLevel(ClearanceLevel.LEVEL_1_PUBLIC);
             }
@@ -73,16 +73,18 @@ public class LocationService {
     }
 
     /**
-     * Hromadné vytvoření lokalit.
-     * Vzhledem k transakčnosti (rollback při chybě) je vhodné pro konzistentní importy hierarchií.
+     * Vyhledá lokace na základě komplexního filtru se stránkováním.
+     * Využívá centralizovaný LocationSpecifications.build.
      */
-    @Transactional
-    public List<LocationResponse> createLocationsBulk(List<LocationRequest> requests) {
-        log.info("FAUST_GEO: Initiating bulk import for {} location requests", requests.size());
+    @Transactional(readOnly = true)
+    public Page<LocationResponse> search(LocationFilter filter, Pageable pageable) {
+        log.debug("FAUST_GEO: Executing search with filter: {}", filter);
 
-        return requests.stream()
-                .map(this::createLocation) // Reusing existing logic including hierarchy & security checks
-                .toList();
+        // Použití build metody řeší "Cannot resolve method" chybu
+        Specification<Location> spec = LocationSpecifications.build(filter);
+
+        return locationRepository.findAll(spec, pageable)
+                .map(locationMapper::toResponse);
     }
 
     @Transactional(readOnly = true)
@@ -103,7 +105,7 @@ public class LocationService {
     }
 
     /**
-     * Sestaví hierarchickou cestu (např. Česko -> Praha -> Strakova akademie).
+     * Sestaví hierarchickou cestu (breadcrumbs).
      */
     @Transactional(readOnly = true)
     public List<LocationResponse> getLocationPath(UUID externalId) {
@@ -139,9 +141,6 @@ public class LocationService {
         return locationMapper.toResponse(locationRepository.save(location));
     }
 
-    /**
-     * Soft-deaktivace uzlu. V systému Faust zachováváme historickou stopu.
-     */
     @Transactional
     public void deactivateLocation(UUID externalId) {
         Location location = locationRepository.findByExternalId(externalId)
@@ -151,16 +150,10 @@ public class LocationService {
         log.warn("FAUST_GEO: Node {} deactivated.", externalId);
     }
 
-    @Transactional(readOnly = true)
-    public List<LocationResponse> search(String name, String type, UUID parentId) {
-        // Implementace Specification je oddělena v LocationSpecifications
-        Specification<Location> spec = Specification.where(LocationSpecifications.activeOnly())
-                .and(LocationSpecifications.nameContains(name))
-                .and(LocationSpecifications.hasType(type))
-                .and(LocationSpecifications.hasParent(parentId));
-
-        return locationRepository.findAll(spec).stream()
-                .map(locationMapper::toResponse)
-                .collect(Collectors.toList());
+    @Transactional
+    public List<LocationResponse> createLocationsBulk(List<LocationRequest> requests) {
+        return requests.stream()
+                .map(this::createLocation)
+                .toList();
     }
 }

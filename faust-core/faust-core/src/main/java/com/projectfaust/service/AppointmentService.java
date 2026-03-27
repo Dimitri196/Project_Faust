@@ -21,9 +21,11 @@ import java.util.UUID;
 import java.util.*;
 import java.util.stream.Collectors;
 
+
 /**
- * Service managing the lifecycle of official appointments within Projekt Faust.
- * Optimized for high-volume data ingestion and political accumulation tracking.
+ * Service orchestrating the lifecycle of official appointments and personnel deployments.
+ * Maintains the integrity of the organizational hierarchy by enforcing security clearance
+ * protocols and managing vacancy states across the Faust network.
  */
 @Slf4j
 @Service
@@ -36,18 +38,21 @@ public class AppointmentService {
     private final AppointmentMapper appointmentMapper;
 
     /**
-     * Creates a single appointment.
-     * Suitable for real-time UI actions.
+     * Executes a single personnel deployment.
+     * Validates that the subject's security clearance meets the role's requirements
+     * before establishing the link.
+     *
+     * @param request Metadata for the new appointment.
      */
     @Transactional
     public void appointPerson(AppointmentRequest request) {
-        log.info("System_Action: Initiating appointment for Person_ID: {} to Node_ID: {}",
+        log.info("System_Action: Initiating appointment for Subject: {} to Role: {}",
                 request.personPublicId(), request.occupationPublicId());
 
         Occupation occupation = occupationRepository.findByExternalId(request.occupationPublicId())
-                .orElseThrow(() -> new EntityNotFoundException("Occupation node not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Position node not found"));
         Person person = personRepository.findByExternalId(request.personPublicId())
-                .orElseThrow(() -> new EntityNotFoundException("Subject not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Subject profile not found"));
 
         validateSecurityClearance(person, occupation);
 
@@ -55,18 +60,20 @@ public class AppointmentService {
         appointmentRepository.save(appointment);
 
         updateOccupationVacancyStatus(occupation, request.endDate());
-        log.info("System_Action: Appointment confirmed for {} in {}", person.getLastName(), occupation.getTitle());
+        log.info("System_Action: Deployment confirmed for {} into '{}'", person.getLastName(), occupation.getTitle());
     }
 
     /**
-     * HIGH-PERFORMANCE BULK INGESTION (Optimized for 6000+ records)
-     * Uses in-memory caching to avoid N+1 select issues during mass imports.
+     * HIGH-PERFORMANCE BULK DEPLOYMENT
+     * Optimized for mass ingestion (e.g., historical career data or post-election shifts).
+     * Employs in-memory indexing to mitigate the N+1 selection problem, reducing database
+     * round-trips from thousands to just a few batched queries.
      */
     @Transactional
     public void bulkAppoint(List<AppointmentRequest> requests) {
         if (requests == null || requests.isEmpty()) return;
 
-        log.info("System_Action: Initiating optimized bulk import of {} records.", requests.size());
+        log.info("System_Action: Commencing optimized bulk ingestion of {} career records.", requests.size());
 
         Set<UUID> personUuids = requests.stream()
                 .map(AppointmentRequest::personPublicId)
@@ -88,14 +95,13 @@ public class AppointmentService {
             Occupation occupation = occupationMap.get(req.occupationPublicId());
 
             if (person == null || occupation == null) {
-                log.warn("Skipping record: Missing Person ({}) or Occupation ({})",
+                log.warn("Record Discarded: Identity resolution failed for Person ({}) or Role ({})",
                         req.personPublicId(), req.occupationPublicId());
                 continue;
             }
 
             try {
                 validateSecurityClearance(person, occupation);
-
                 entitiesToSave.add(mapToEntity(req, person, occupation));
 
                 if (req.endDate() == null && occupation.isVacant()) {
@@ -103,7 +109,8 @@ public class AppointmentService {
                     occupationsToUpdate.add(occupation);
                 }
             } catch (SecurityException e) {
-                log.error("Security validation failed during bulk import for {}: {}", person.getFullName(), e.getMessage());
+                log.error("Security Breach Blocked: Subject {} lacks clearance for Role {}: {}",
+                        person.getFullName(), occupation.getTitle(), e.getMessage());
             }
         }
 
@@ -112,20 +119,24 @@ public class AppointmentService {
             occupationRepository.saveAll(occupationsToUpdate);
         }
 
-        log.info("Bulk_Action: Successfully ingested {} appointments in one transaction.", entitiesToSave.size());
+        log.info("Bulk_Action: Successfully committed {} deployments in a single atomic transaction.", entitiesToSave.size());
     }
 
+    /**
+     * Retrieves the chronological history of all subjects who have held a specific position.
+     */
     @Transactional(readOnly = true)
     public List<AppointmentResponse> getHistoryByOccupation(UUID occupationId) {
-        log.debug("Accessing chronological logs for Occupation: {}", occupationId);
         return appointmentMapper.toResponseList(
                 appointmentRepository.findByOccupationExternalIdOrderByStartDateDesc(occupationId)
         );
     }
 
+    /**
+     * Resolves the complete career trajectory (professional dossier) for a specific subject.
+     */
     @Transactional(readOnly = true)
     public List<AppointmentResponse> getHistoryByPerson(UUID personId) {
-        log.debug("Accessing career logs for Person: {}", personId);
         return appointmentMapper.toResponseList(
                 appointmentRepository.findByPersonExternalIdOrderByStartDateDesc(personId)
         );
@@ -147,11 +158,15 @@ public class AppointmentService {
                 .build();
     }
 
+    /**
+     * Enforces the project's security model by comparing the subject's clearance level
+     * against the position's required weight.
+     */
     private void validateSecurityClearance(Person person, Occupation occupation) {
         if (person.getClearanceLevel().getWeight() < occupation.getRequiredClearanceLevel().getWeight()) {
             throw new SecurityException(String.format(
-                    "Insufficient clearance! Person: %s (%s) vs Required: %s",
-                    person.getFullName(), person.getClearanceLevel(), occupation.getRequiredClearanceLevel()
+                    "Clearance Mismatch: Subject [%s] clearance is insufficient for Role [%s]",
+                    person.getClearanceLevel(), occupation.getRequiredClearanceLevel()
             ));
         }
     }

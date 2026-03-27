@@ -5,7 +5,8 @@ export type LocationType =
     | 'PROVINCE' 
     | 'DISTRICT' 
     | 'CITY' 
-    | 'SUBDIVISION' 
+    | 'SUBDIVISION_L1' 
+    | 'SUBDIVISION_L2' 
     | 'FACILITY' 
     | 'ZONE' 
     | 'SUBLOCATION';
@@ -17,6 +18,11 @@ export interface LocationResponse {
     isoCode: string | null;
     parentExternalId: string | null;
     parentName: string | null;
+    clearanceLevel: ClearanceLevel;
+    active: boolean;
+    latitude: number | null;
+    longitude: number | null;
+    hasChildren: boolean;
 }
 
 export interface LocationRequest {
@@ -24,6 +30,20 @@ export interface LocationRequest {
     type: LocationType;
     isoCode?: string;
     parentExternalId?: string;
+    clearanceLevel?: ClearanceLevel;
+    latitude?: number;
+    longitude?: number;
+}
+
+export interface Page<T> {
+    content: T[];
+    totalPages: number;
+    totalElements: number;
+    size: number;
+    number: number; // aktuální stránka
+    first: boolean;
+    last: boolean;
+    empty: boolean;
 }
 
 export type HierarchicalLevel = 'NATIONAL' | 'REGIONAL' | 'LOCAL' | 'INTERNATIONAL' | 'SUB_LOCAL';

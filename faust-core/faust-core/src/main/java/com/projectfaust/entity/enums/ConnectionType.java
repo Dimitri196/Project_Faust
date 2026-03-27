@@ -16,7 +16,9 @@ public enum ConnectionType {
     BUSINESS_PARTNER("Business Partner", 0.6),
     LOBBYIST_CONTACT("Lobbyist Contact", 0.5),
     SENSITIVE_LINK("Monitored / Sensitive Link", 0.3),
-    UNDER_INVESTIGATION("Subject of Investigation", 0.2);
+    UNDER_INVESTIGATION("Subject of Investigation", 0.2),
+    INTELLIGENCE_SOURCE("Intelligence Source / Asset", 0.9),
+    CLANDESTINE_CONTACT("Clandestine / Unofficial Contact", 0.85);
 
     private final String label;
     private final double defaultWeight;

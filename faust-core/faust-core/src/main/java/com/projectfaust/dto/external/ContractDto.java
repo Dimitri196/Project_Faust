@@ -10,15 +10,27 @@ import java.util.List;
 public record ContractDto(
         @JsonProperty("Id") String id,
         @JsonProperty("Predmet") String subject,
-        @JsonAlias({"CenaBezDPH", "hodnotaBezDph", "hodnota", "Cena"})
+
+        // Pokrýváme všechny možné názvy polí pro cenu
+        @JsonAlias({"CenaBezDPH", "hodnotaBezDph", "hodnota", "Cena", "CenaVcetneDph"})
         Double priceWithoutVat,
+
         @JsonProperty("DatumUzavreni") String dateConfirmed,
-        @JsonProperty("Platce") InstitutionInfo buyer,
-        @JsonProperty("Dodavatele") List<InstitutionInfo> suppliers
+
+        @JsonAlias({"Platce", "platce"})
+        InstitutionInfo buyer,
+
+        // KLÍČOVÁ ZMĚNA: Aliasy pro dodavatele
+        @JsonAlias({"Dodavatele", "Prijemce", "prijemce", "dodavatele"})
+        List<InstitutionInfo> suppliers,
+
+        // Záchranná síť: Seznam všech stran smlouvy
+        @JsonProperty("SmluvniStrany")
+        List<InstitutionInfo> allParties
 ) {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public record InstitutionInfo(
-            @JsonAlias({"Ico", "ico"}) String ico,
+            @JsonAlias({"Ico", "ico", "ICO"}) String ico,
             @JsonProperty("Nazev") String name
     ) {}
 }

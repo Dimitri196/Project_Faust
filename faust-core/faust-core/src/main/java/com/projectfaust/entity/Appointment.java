@@ -29,7 +29,7 @@ public class Appointment {
     @SequenceGenerator(
             name = "appointments_seq",
             sequenceName = "appointments_id_seq",
-            allocationSize = 50
+            allocationSize = 1
     )
     private Long id;
 

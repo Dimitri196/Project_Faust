@@ -22,6 +22,11 @@ import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 
+/**
+ * Core service for institutional lifecycle management and hierarchy traversal.
+ * Handles the complexities of recursive tree building, security clearance inheritance,
+ * and multi-parameter discovery of state-corporate entities.
+ */
 @Slf4j
 @Service
 @RequiredArgsConstructor

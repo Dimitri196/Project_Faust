@@ -23,6 +23,7 @@ public interface LocationMapper {
      */
     @Mapping(target = "parentExternalId", source = "parent.externalId")
     @Mapping(target = "parentName", source = "parent.name")
+    @Mapping(target = "hasChildren", expression = "java(location.getChildren() != null && !location.getChildren().isEmpty())")
     LocationResponse toResponse(Location location);
 
     /**
@@ -37,6 +38,6 @@ public interface LocationMapper {
     @Mapping(target = "externalId", ignore = true)
     @Mapping(target = "parent", ignore = true)
     @Mapping(target = "children", ignore = true)
-    @Mapping(target = "clearanceLevel", source = "clearance")
+    @Mapping(target = "createdAt", ignore = true)
     Location toEntity(LocationRequest request);
 }

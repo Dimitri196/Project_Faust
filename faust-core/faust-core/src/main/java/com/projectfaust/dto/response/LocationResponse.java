@@ -15,5 +15,6 @@ public record LocationResponse(
         ClearanceLevel clearanceLevel,
         boolean active,
         Double latitude,
-        Double longitude
+        Double longitude,
+        boolean hasChildren
 ) {}

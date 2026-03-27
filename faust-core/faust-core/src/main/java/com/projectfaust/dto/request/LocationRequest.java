@@ -10,7 +10,7 @@ public record LocationRequest(
         LocationType type,
         String isoCode,
         UUID parentExternalId,
-        ClearanceLevel clearance,
+        ClearanceLevel clearanceLevel,
         Double latitude,
         Double longitude
 ) {}
