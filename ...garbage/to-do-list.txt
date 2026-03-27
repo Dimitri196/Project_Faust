@@ -1,0 +1,49 @@
+Doplnit interaktivní grafy (např. vytížení oddělení nebo rozpočtové toky).
+Vytvořit PDF exporty těchto mandátů v podobě oficiálních dokumentů.
+Nebo doladit responzivitu pro mobilní terminály.
+
+1. The "Influence Map" (Dynamic Graph)
+Intelligence agencies don't just look at names; they look at proximity.
+
+The Concept: Create a Connections table that maps relationships outside of official appointments (e.g., family, classmates, business partners).
+
+The Feature: A "Degrees of Separation" calculator. If you search for "Marek Benda," the system should show who he went to university with and who those people work for now.
+
+2. Event & Timeline Intelligence (Chronos_Layer)
+A database is static; history is fluid.
+
+The Concept: An Events entity. This includes international summits, private gala dinners, or closed-door meetings.
+
+The Feature: Link Appointments to Events. You could then query: "Show me everyone who was in Brussels during the energy crisis summit and had a Clearance Level > 3."
+
+3. Biometric & Digital Footprint (Ghost_Signal)
+This adds the "Cyberpunk/Intelligence" feel.
+
+The Concept: Store metadata like PGP keys, known aliases (Handle), encrypted communication IDs (Signal/Threema), and even "Behavioral Patterns."
+
+The Feature: An Active_Status flag based on digital activity.
+
+4. Financial & Asset Tracking (Follow_The_Money)
+Power is often hidden in money trails, not just job titles.
+
+The Concept: Track institutional funding or "Proxy Organizations."
+
+The Feature: See which Institutions share the same board members or funding sources.
+
+Recommended Database Expansion
+Based on your current schema, here is the next logical table to build to elevate the project:
+
+5. AI Reasoning (The "Oracle" Layer)
+Since you are using Java and Spring Boot, you could integrate an LLM (like me, or a local Llama instance) to analyze the biographies.
+
+The Goal: Automatically extract "Potential Risks" or "Conflict of Interest" between a Person and an Institution.
+
+How to make the UI better than the CIA's?
+Your Cyberpunk HUD is already cooler than most gov-software. To make it more functional:
+
+Heatmaps: Show "Power Concentration" in different cities (Prague vs. Brussels).
+
+Breadcrumbs: When you click through from Marek Benda to his university, the HUD should keep a visual trail of your investigation.
+
+What would you like to build first? We could create the operational_links table to start mapping the "Shadow Web" of connections, or we could implement a Timeline View for appointments.
+
