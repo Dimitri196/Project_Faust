@@ -1,30 +1,53 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { useLocation } from 'react-router-dom';
 import api from '../api/axios';
-import { 
-  Network, 
-  Database, 
-  Info, 
-  Search, 
-  Activity, 
-  ShieldAlert, 
-  Cpu,
-  X
+import {
+  Network, Database, Info, Search, Activity,
+  ShieldAlert, Cpu, X, ListTree, LayoutGrid,
+  Maximize2, Zap, SearchCode
 } from 'lucide-react';
 import type { InstitutionTreeResponse } from '../types';
 import InstitutionTree from '../components/institutions/InstitutionTree';
+import { InstitutionFlow } from '../components/institutions/InstitutionFlow';
 
 const InstitutionsPage = () => {
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState('');
+  const [viewMode, setViewMode] = useState<'tree' | 'nexus'>('tree');
+  const [focusNodeId, setFocusNodeId] = useState<string | null>(null);
 
-  const { data: tree, isLoading, error } = useQuery<InstitutionTreeResponse[]>({
+  // 1. ZÁKLADNÍ KOŘENY (Pouze top-level úřady pro šetření výkonu)
+  const { data: tree, isLoading: isTreeLoading } = useQuery<InstitutionTreeResponse[]>({
     queryKey: ['institution-tree'],
     queryFn: async () => {
+      // Volá námi upravený endpoint pro kořeny (Roots)
       const res = await api.get('/institutions/tree');
       return res.data;
     }
   });
 
+  // 2. FOCUS DATA (Načítá hluboký podstrom pro Nexus vizualizaci)
+  const { data: subTreeData, isLoading: isSubTreeLoading } = useQuery<InstitutionTreeResponse>({
+    queryKey: ['institution-subtree', focusNodeId],
+    queryFn: async () => {
+      if (!focusNodeId) return null;
+      // Volá rekurzivní endpoint (toTreeResponse v Mapperu)
+      const res = await api.get(`/institutions/${focusNodeId}/sub-tree`);
+      return res.data;
+    },
+    enabled: !!focusNodeId,
+    staleTime: 1000 * 60 * 5
+  });
+
+  useEffect(() => {
+    const state = location.state as { focusId?: string; view?: 'tree' | 'nexus' };
+    if (state?.focusId) setFocusNodeId(state.focusId);
+    if (state?.view) setViewMode(state.view);
+  }, [location]);
+
+  // Statistiky počítáme pouze z viditelných/načtených kořenů 
+  // nebo můžeme přidat samostatný endpoint na globální statistiky
   const stats = useMemo(() => {
     if (!tree) return { total: 0, intelligence: 0 };
     let total = 0;
@@ -42,136 +65,161 @@ const InstitutionsPage = () => {
     return { total, intelligence };
   }, [tree]);
 
+  const finalFocusData = useMemo(() => {
+    return subTreeData ? [subTreeData] : [];
+  }, [subTreeData]);
+
   const filteredTree = useMemo(() => {
     if (!searchQuery) return tree;
     const lowerQuery = searchQuery.toLowerCase();
-    return tree?.filter(node => 
-      node.name.toLowerCase().includes(lowerQuery) || 
+    // V Lazy Loadingu hledáme primárně v kořenech. 
+    // Pro globální full-text hledání by byl lepší dedikovaný endpoint /search.
+    return tree?.filter(node =>
+      node.name.toLowerCase().includes(lowerQuery) ||
       node.publicId.toLowerCase().includes(lowerQuery)
     );
   }, [tree, searchQuery]);
 
+  // Sem nahoru do InstitutionsPage.tsx (mimo hlavní funkci komponenty) přidej:
+  const EMPTY_TREE_ARRAY: InstitutionTreeResponse[] = [];
+
+  // ... uvnitř komponenty InstitutionsPage:
+  const memoizedTreeData = useMemo(() => {
+    return tree || EMPTY_TREE_ARRAY;
+  }, [tree]);
+
   return (
-    <div className="h-full flex flex-col bg-[#0f172a] text-slate-200">
-      
-      {/* HEADER SECTION */}
-      <div className="px-8 py-6 border-b border-slate-800 bg-slate-900/50 relative overflow-hidden">
-        {/* Subtle Decorative Gradient */}
-        <div className="absolute top-0 right-0 w-64 h-full bg-blue-500/5 skew-x-[-20deg] translate-x-32 pointer-events-none border-l border-white/5" />
-        
-        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6 relative z-10">
-          <div>
-            <div className="flex items-center gap-2 text-blue-500 mb-1 font-mono text-[10px] uppercase tracking-[0.3em]">
-              <Network size={12} className="animate-pulse" />
-              <span>Structural_Nexus_Mapping</span>
+    <div className="h-full flex flex-col bg-[#0f172a] text-slate-200 overflow-hidden relative">
+
+      {/* HEADER */}
+      <div className="px-8 py-6 border-b border-slate-800 bg-slate-900/50 relative z-20 shrink-0">
+        <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-end justify-between gap-6">
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center gap-2 text-blue-500 mb-1 font-mono text-[10px] uppercase tracking-[0.3em]">
+                <Network size={12} className="animate-pulse" />
+                <span>Structural_Nexus_Mapping</span>
+              </div>
+              <h1 className="text-3xl font-bold text-white tracking-tight uppercase">
+                Nexus <span className="text-slate-500 font-light italic">Explorer</span>
+              </h1>
             </div>
-            <h1 className="text-3xl font-bold text-white tracking-tight uppercase">
-              Nexus <span className="text-slate-500 font-light italic">Explorer</span>
-            </h1>
+
+            {/* SEARCH BAR */}
+            <div className="relative max-w-md">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500" size={16} />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Query registry node..."
+                className="w-full bg-black/40 border border-slate-800 rounded py-2 pl-10 pr-4 text-xs font-mono focus:border-blue-500 outline-none transition-all placeholder:text-slate-700"
+              />
+            </div>
           </div>
-          
-          <div className="flex gap-4">
-            <MetricBlock label="Active Nodes" value={stats.total} color="text-blue-400" />
+
+          <div className="flex gap-4 items-center">
+            <MetricBlock label="Root Nodes" value={tree?.length || 0} color="text-blue-400" />
             <MetricBlock label="Intel Assets" value={stats.intelligence} color="text-red-500" isCritical />
-            
+
             <div className="h-12 w-px bg-slate-800 mx-2 hidden md:block" />
-            
-            <div className="hidden md:flex items-center gap-3 px-4 py-2 bg-slate-900 border border-slate-800 rounded-lg self-center">
-              <Activity size={14} className="text-emerald-500" />
-              <div className="flex flex-col">
-                <span className="text-[8px] text-slate-500 uppercase font-bold tracking-widest">Uplink Status</span>
-                <span className="text-[10px] text-emerald-500 font-mono font-bold uppercase">Encrypted_Active</span>
-              </div>
+
+            <div className="flex bg-black/40 p-1 rounded border border-slate-800 self-center">
+              <button
+                onClick={() => setViewMode('tree')}
+                className={`px-3 py-1.5 rounded flex items-center gap-2 text-[10px] font-bold transition-all ${viewMode === 'tree' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+              >
+                <ListTree size={14} /> REGISTER
+              </button>
+              <button
+                onClick={() => setViewMode('nexus')}
+                className={`px-3 py-1.5 rounded flex items-center gap-2 text-[10px] font-bold transition-all ${viewMode === 'nexus' ? 'bg-blue-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-300'}`}
+              >
+                <Network size={14} /> FULL NEXUS
+              </button>
             </div>
           </div>
         </div>
       </div>
 
-      {/* SEARCH BAR */}
-      <div className="px-8 py-4 bg-slate-900/30 border-b border-slate-800/50 flex justify-center shrink-0">
-        <div className="max-w-4xl w-full relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-600" size={16} />
-          <input 
-            type="text"
-            placeholder="FILTER INSTITUTIONS BY NAME OR IDENTIFIER..."
-            className="w-full bg-slate-900 border border-slate-800 py-3 pl-12 pr-12 text-xs font-mono text-blue-400 placeholder:text-slate-700 focus:outline-none focus:border-blue-500/50 focus:ring-1 focus:ring-blue-500/20 transition-all rounded-lg uppercase tracking-wider"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-          {searchQuery && (
-            <button 
-              onClick={() => setSearchQuery('')}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-600 hover:text-white transition-colors"
-            >
-              <X size={14} />
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* MAIN VIEWPORT */}
-      <div className="flex-1 overflow-auto p-8 custom-scrollbar bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px]">
-        <div className="max-w-4xl mx-auto">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center py-32">
-              <Cpu className="w-10 h-10 mb-4 text-blue-500/20 animate-spin" />
-              <div className="w-32 h-1 bg-slate-800 rounded-full overflow-hidden relative">
-                <div className="absolute inset-0 bg-blue-500 animate-[loading_1.5s_infinite]" style={{ width: '40%' }} />
-              </div>
-              <span className="mt-4 text-[10px] font-mono text-slate-500 uppercase tracking-[0.2em]">Reconstructing Nexus Tree</span>
-            </div>
-          ) : error ? (
-            <div className="p-6 border border-red-900/50 bg-red-950/20 rounded-lg flex items-center gap-4">
-              <ShieldAlert size={24} className="text-red-500 shrink-0" />
-              <div>
-                <div className="text-red-200 font-bold uppercase text-sm mb-1">Critical Uplink Failure</div>
-                <div className="text-red-500/70 text-xs font-mono lowercase">failed_to_initialize_institutional_nexus_sync</div>
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              <div className="flex items-center gap-3 text-slate-500 border-b border-slate-800/50 pb-4 mb-6">
-                <Info size={14} className="text-blue-500/50" />
-                <span className="text-[10px] font-mono uppercase tracking-widest italic">
-                  {searchQuery ? `Active filter: "${searchQuery}"` : 'Select an entity node to initialize metadata extraction'}
-                </span>
-              </div>
-              
-              <div className="space-y-3 animate-in fade-in slide-in-from-bottom-2 duration-500">
-                {filteredTree?.map((rootNode) => (
-                  <InstitutionTree 
-                    key={rootNode.publicId} 
-                    node={rootNode} 
-                    depth={0} 
-                    forceOpen={searchQuery.length > 0} 
-                  />
-                ))}
-
-                {filteredTree?.length === 0 && (
-                  <div className="py-24 text-center border border-dashed border-slate-800 rounded-xl">
-                    <Database size={40} className="mx-auto text-slate-800 mb-4" />
-                    <span className="font-mono text-[10px] text-slate-600 uppercase tracking-[0.3em]">
-                      Query_Returned_Zero_Matches
-                    </span>
+      {/* VIEWPORT */}
+      <div className="flex-1 relative overflow-hidden">
+        {isTreeLoading ? (
+          <div className="flex flex-col items-center justify-center h-full font-mono text-slate-500 uppercase tracking-widest text-[10px]">
+            <Cpu className="animate-spin mb-4 text-blue-500/50" size={32} />
+            Synchronizing structural nodes...
+          </div>
+        ) : (
+          <>
+            {/* REGISTER VIEW - Nyní podporuje Lazy Loading */}
+            <div className={`h-full overflow-y-auto p-8 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] ${viewMode !== 'tree' ? 'hidden' : ''}`}>
+              <div className="max-w-4xl mx-auto space-y-3 pb-24">
+                {filteredTree?.length === 0 ? (
+                  <div className="text-center py-20 border border-dashed border-slate-800 rounded">
+                    <SearchCode className="mx-auto text-slate-700 mb-4" size={48} />
+                    <p className="text-slate-500 font-mono text-xs">NO_NODES_MATCH_QUERY</p>
                   </div>
+                ) : (
+                  filteredTree?.map((rootNode) => (
+                    <InstitutionTree
+                      key={rootNode.publicId}
+                      node={rootNode}
+                      depth={0}
+                      forceOpen={searchQuery.length > 2} // Automaticky otevírá při psaní
+                      onFocusClick={(id) => setFocusNodeId(id)}
+                    />
+                  ))
                 )}
               </div>
             </div>
-          )}
-        </div>
+
+            {/* FULL NEXUS VIEW (Vysoká zátěž - zobrazuje jen načtené kořeny) */}
+            {viewMode === 'nexus' && (
+              <div className="h-full w-full bg-black">
+                <InstitutionFlow data={memoizedTreeData} />
+              </div>
+            )}
+
+            {/* FOCUS MODAL - Hluboká strukturální analýza */}
+            {focusNodeId && (
+              <div className="absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-300 flex flex-col">
+                <div className="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900/80">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-blue-500/20 rounded text-blue-400">
+                      <Zap size={16} />
+                    </div>
+                    <div>
+                      <h2 className="text-[10px] font-black text-white uppercase tracking-[0.2em]">Structural_Focus_Mode</h2>
+                      <p className="text-[9px] font-mono text-slate-500 uppercase">
+                        {isSubTreeLoading ? 'FETCHING_DEEP_HIERARCHY...' : `Isolating_Nexus::${subTreeData?.name || focusNodeId}`}
+                      </p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => setFocusNodeId(null)}
+                    className="group p-2 hover:bg-red-500/20 rounded-full transition-all"
+                  >
+                    <X size={24} className="text-slate-500 group-hover:text-red-500" />
+                  </button>
+                </div>
+
+                <div className="flex-1 bg-black/40">
+                  {isSubTreeLoading ? (
+                    <div className="h-full flex items-center justify-center font-mono text-[10px] text-blue-500 animate-pulse">
+                      DECRYPTING_SUBSTRUCTURE_GRAPH...
+                    </div>
+                  ) : (
+                    <InstitutionFlow data={finalFocusData} />
+                  )}
+                </div>
+              </div>
+            )}
+          </>
+        )}
       </div>
-      
-      <style>{`
-        @keyframes loading {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(300%); }
-        }
-      `}</style>
     </div>
   );
 };
-
-// --- HELPER COMPONENT ---
 
 const MetricBlock = ({ label, value, color, isCritical }: { label: string, value: number, color: string, isCritical?: boolean }) => (
   <div className="text-right px-4 py-2 bg-slate-900/50 border border-slate-800 rounded-lg min-w-[100px]">

@@ -7,31 +7,44 @@ import com.projectfaust.entity.filters.LocationFilter;
 import org.springframework.data.jpa.domain.Specification;
 
 import java.util.UUID;
+import jakarta.persistence.criteria.Predicate;
+import java.util.ArrayList;
+import java.util.List;
 
+
+/**
+ * Robustní specifikace pro Project Faust.
+ * Zajišťuje dynamické filtrování lokací na základě geografických,
+ * hierarchických a bezpečnostních parametrů.
+ */
 public class LocationSpecifications {
 
+    /**
+     * Základní bezpečnostní pravidlo: vracíme pouze aktivní uzly.
+     */
     public static Specification<Location> activeOnly() {
         return (root, query, cb) -> cb.isTrue(root.get("active"));
     }
 
+    /**
+     * Full-textové vyhledávání v názvu lokace (case-insensitive).
+     */
     public static Specification<Location> nameContains(String name) {
         return (root, query, cb) -> (name == null || name.isBlank())
                 ? null
                 : cb.like(cb.lower(root.get("name")), "%" + name.toLowerCase() + "%");
     }
 
-    public static Specification<Location> hasType(String type) {
-        return (root, query, cb) -> {
-            if (type == null || type.isBlank() || type.equals("ALL_TYPES")) return null;
-            try {
-                LocationType enumType = LocationType.valueOf(type.toUpperCase());
-                return cb.equal(root.get("type"), enumType);
-            } catch (IllegalArgumentException e) {
-                return null;
-            }
-        };
+    /**
+     * Filtrace podle typu lokace (COUNTRY, CITY, FACILITY atd.).
+     */
+    public static Specification<Location> hasType(LocationType type) {
+        return (root, query, cb) -> type == null ? null : cb.equal(root.get("type"), type);
     }
 
+    /**
+     * Vyhledá přímé potomky daného rodiče pomocí UUID.
+     */
     public static Specification<Location> hasParent(UUID parentExternalId) {
         return (root, query, cb) -> {
             if (parentExternalId == null) return null;
@@ -39,12 +52,19 @@ public class LocationSpecifications {
         };
     }
 
+    /**
+     * Bezpečnostní filtr (Project Faust): vrátí pouze lokace,
+     * na které má uživatel dostatečnou prověrku.
+     */
     public static Specification<Location> securityScope(ClearanceLevel maxLevel) {
         return (root, query, cb) -> maxLevel == null
                 ? null
                 : cb.lessThanOrEqualTo(root.get("clearanceLevel"), maxLevel);
     }
 
+    /**
+     * Geofencing: filtrace lokací uvnitř mapového výřezu.
+     */
     public static Specification<Location> insideBounds(Double north, Double south, Double east, Double west) {
         return (root, query, cb) -> {
             if (north == null || south == null || east == null || west == null) return null;
@@ -55,35 +75,59 @@ public class LocationSpecifications {
         };
     }
 
+    /**
+     * Vyfiltruje pouze kořenové elementy (kontinenty).
+     */
     public static Specification<Location> isRoot() {
         return (root, query, cb) -> cb.isNull(root.get("parent"));
     }
 
     /**
-     * Sestaví finální query na základě LocationFilteru.
+     * Sestaví finální komplexní Query na základě LocationFilteru.
+     * Implementuje inteligentní hierarchický drill-down.
      */
     public static Specification<Location> build(LocationFilter filter) {
-        Specification<Location> spec = Specification.where(activeOnly());
+        return (root, query, cb) -> {
+            List<Predicate> predicates = new ArrayList<>();
 
-        if (filter == null) return spec;
+            // 1. Vždy vynutit aktivní záznamy
+            predicates.add(cb.isTrue(root.get("active")));
 
-        // Základní filtry
-        spec = spec.and(nameContains(filter.getQuery()));
-        spec = spec.and(hasType(filter.getType() != null ? filter.getType().name() : null));
+            if (filter != null) {
+                // 2. Full-text vyhledávání
+                if (filter.getQuery() != null && !filter.getQuery().isBlank()) {
+                    String pattern = "%" + filter.getQuery().toLowerCase() + "%";
+                    predicates.add(cb.like(cb.lower(root.get("name")), pattern));
+                }
 
-        // Hierarchie
-        if (Boolean.TRUE.equals(filter.getRootOnly())) {
-            spec = spec.and(isRoot());
-        } else {
-            spec = spec.and(hasParent(filter.getParentId()));
-        }
+                // 3. Typ lokace
+                if (filter.getType() != null) {
+                    predicates.add(cb.equal(root.get("type"), filter.getType()));
+                }
 
-        // Mapové souřadnice
-        spec = spec.and(insideBounds(filter.getNorth(), filter.getSouth(), filter.getEast(), filter.getWest()));
+                // 4. Hierarchie (Drill-down logika)
+                if (filter.getParentId() != null) {
+                    // Pokud je zadán rodič, hledáme v něm (vrtání do hloubky)
+                    predicates.add(cb.equal(root.get("parent").get("externalId"), filter.getParentId()));
+                } else if (Boolean.TRUE.equals(filter.getRootOnly())) {
+                    // Pokud jsme na začátku a není search, chceme jen kořeny
+                    predicates.add(cb.isNull(root.get("parent")));
+                }
 
-        // Projekt Faust: Bezpečnostní ořezání
-        spec = spec.and(securityScope(filter.getMaxClearance()));
+                // 5. Geografické hranice
+                if (filter.getNorth() != null && filter.getSouth() != null &&
+                        filter.getEast() != null && filter.getWest() != null) {
+                    predicates.add(cb.between(root.get("latitude"), filter.getSouth(), filter.getNorth()));
+                    predicates.add(cb.between(root.get("longitude"), filter.getWest(), filter.getEast()));
+                }
 
-        return spec;
+                // 6. Bezpečnostní clearance (Project Faust)
+                if (filter.getMaxClearance() != null) {
+                    predicates.add(cb.lessThanOrEqualTo(root.get("clearanceLevel"), filter.getMaxClearance()));
+                }
+            }
+
+            return cb.and(predicates.toArray(new Predicate[0]));
+        };
     }
 }

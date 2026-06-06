@@ -35,6 +35,19 @@ export interface LocationRequest {
     longitude?: number;
 }
 
+export interface LocationFilter {
+  query?: string;
+  type?: string;
+  parentId?: string;
+  rootOnly?: boolean;
+  // Volitelné pro mapu
+  north?: number;
+  south?: number;
+  east?: number;
+  west?: number;
+  maxClearance?: string;
+}
+
 export interface Page<T> {
     content: T[];
     totalPages: number;
@@ -51,6 +64,34 @@ export type InstitutionType = 'EXECUTIVE' | 'LEGISLATIVE' | 'JUDICIAL' | 'MILITA
 export type OccupationCategory = 'GOVERNANCE' | 'EXECUTIVE' | 'SPECIALIST' | 'OPERATIONAL' | 'TECHNICAL';
 export type EducationLevel = 'SECONDARY' | 'HIGHER_VOCATIONAL' | 'BACHELOR' | 'MASTER' | 'DOCTORATE';
 export type ClearanceLevel = 'LEVEL_1_PUBLIC' | 'LEVEL_2_INTERNAL' | 'LEVEL_3_CONFIDENTIAL' | 'LEVEL_4_SECRET' | 'LEVEL_5_TOP_SECRET';
+export type NameType = 'LEGAL' | 'ALIAS' | 'PSEUDONYM' | 'MAIDEN' | 'HISTORICAL' | 'RELIGIOUS';
+// =========================================================================
+// NEW ENUMS FOR TELEMETRY AND TECHNICAL FOOTPRINTS
+// =========================================================================
+export type ContactType =
+    | 'CELLULAR_GSM'
+    | 'VOIP'
+    | 'SATELLITE_TERMINAL'
+    | 'THREEMA'
+    | 'SIGNAL'
+    | 'MATRIX_IDENTITY'
+    | 'SESSION_ID'
+    | 'COMMERCIAL_IM'
+    | 'EMAIL'
+    | 'IP_ADDRESS'
+    | 'DARKNET_ENDPOINT'
+    | 'CRYPTO_WALLET'
+    | 'TACTICAL_RF'
+    | 'COVERT_PHYSICAL_DROP';
+
+export type VerificationStatus =
+    | 'OFFICIAL_REGISTRY'
+    | 'TECHNICAL_INTERCEPT'
+    | 'VETTED_HUMINT'
+    | 'VERIFIED_OSINT'
+    | 'UNVERIFIED'
+    | 'DECEPTION_MARKER'
+    | 'EXPIRED_DEPRECATING';
 
 export interface InstitutionResponse {
     publicId: string;
@@ -65,8 +106,10 @@ export interface InstitutionResponse {
     locationId: string;
     locationName: string;
     fullLocationPath: LocationResponse[] | null;
+    clearanceLevel: ClearanceLevel;
     logoUrl: string | null;
     websiteUrl: string | null;
+    active: boolean;
 }
 
 export interface IntelligenceReportResponse {
@@ -87,6 +130,10 @@ export interface InstitutionTreeResponse {
     description: string;
     isStateOwned: boolean;
     children: InstitutionTreeResponse[];
+    hasChildren: boolean;
+    parent: InstitutionTreeResponse;
+    active: boolean;
+    logoUrl: string | null;
 }
 
 export interface InstitutionAscendedResponse {
@@ -99,6 +146,35 @@ export interface InstitutionAscendedResponse {
     parent: InstitutionAscendedResponse | null;
 }
 
+export interface PersonNameDto {
+    firstName: string;
+    lastName: string;
+    type: NameType;
+    isPrimary: boolean;
+    validFrom: string | null;
+    validTo: string | null;
+    note: string | null;
+}
+
+// =========================================================================
+// NEW: INDEPENDENT TELEMETRY STRUCTURE FOR GRID AND GRAHP ANALYSIS
+// =========================================================================
+export interface PersonContactDto {
+    publicId: string; // externalId z DB entity PersonContact
+    contactType: ContactType;
+    contactValueRaw: string;
+    contactValueNormalized: string;
+    operatorName: string | null;
+    imei: string | null;
+    verificationStatus: VerificationStatus;
+    confidenceScore: number;
+    clearanceLevel: ClearanceLevel;
+    isActive: boolean;
+    validFrom: string | null;
+    validTo: string | null;
+    analyticalNote: string | null;
+}
+
 export interface PersonResponse {
     publicId: string;
     firstName: string;
@@ -107,13 +183,11 @@ export interface PersonResponse {
     titleAfter: string | null;
     displayName: string;
     educationLevel: EducationLevel;
-    fieldOfStudy: string;
-    email: string;
-    phone: string;
-    biography: string;
-    photoUrl: string;
-    currentLocationId: string;
-    currentLocationName: string;
+    fieldOfStudy: string | null;
+    biography: string | null;
+    photoUrl: string | null;
+    currentLocationId: string | null;
+    currentLocationName: string | null;
     politicalAffiliation: string | null;
     birthDate: string; 
     deathDate: string | null;
@@ -122,6 +196,10 @@ export interface PersonResponse {
     placeOfBirth: string;
     age: number;
     clearanceLevel: ClearanceLevel;
+    nameHistory: PersonNameDto[]; 
+    contactHistory: PersonContactDto[]; // <-- PŘIDÁNO: Pro vykreslení kompletního telemetrického uzlu v grafu
+    primaryEmail: string | null;       // <-- SYNCHRONIZOVÁNO: Rychlé zobrazení pro seznamy/tabulky UI
+    primaryPhone: string | null;       // <-- SYNCHRONIZOVÁNO: Rychlé zobrazení pro seznamy/tabulky UI
 }
 
 export interface AgentOnboardingRequest {
@@ -154,6 +232,7 @@ export interface OccupationTreeResponse {
     rank: string;
     currentOccupantName: string | null;
     subordinates: OccupationTreeResponse[];
+    personPublicId: string | null;
 }
 
 export interface AppointmentRequest {

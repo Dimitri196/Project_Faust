@@ -1,36 +1,36 @@
 import { useQuery } from '@tanstack/react-query';
 import axios from 'axios';
 import type { OccupationTreeResponse } from '../types';
-import { ShieldAlert, User, UserMinus, GitMerge, ChevronRight, ChevronDown, Activity, Target } from 'lucide-react';
+import { 
+  ShieldAlert, User, UserMinus, ChevronRight, ChevronDown, 
+  Activity, Target, LayoutList, Network 
+} from 'lucide-react';
 import { useState } from 'react';
+// IMPORT NOVÉ KOMPONENTY
+import { HierarchyFlow } from '../components/occupations/HierarchyFlow'; 
 
-// REKURZIVNÍ KOMPONENTA PRO POZICE
-const OccupationNode = ({ node, depth }: { node: OccupationTreeResponse; depth: number }) => {
+// --- 1. TACTICAL NODE (Původní seznamový styl) ---
+const OccupationNodeTactical = ({ node, depth }: { node: OccupationTreeResponse; depth: number }) => {
   const [isOpen, setIsOpen] = useState(true);
   const hasSubordinates = node.subordinates && node.subordinates.length > 0;
 
-  // Dynamické barvy podle kategorie z tvého nového typu OccupationCategory
   const getCategoryColor = (cat: string) => {
     switch (cat) {
-      case 'POLITICAL': return 'text-purple-400 border-purple-900/50 bg-purple-500/5';
-      case 'TECHNICAL': return 'text-blue-400 border-blue-900/50 bg-blue-500/5';
-      case 'ADVISORY': return 'text-emerald-400 border-emerald-900/50 bg-emerald-500/5';
-      case 'MILITARY': return 'text-orange-400 border-orange-900/50 bg-orange-500/5';
+      case 'GOVERNANCE': return 'text-purple-400 border-purple-900/50 bg-purple-500/5';
+      case 'EXECUTIVE': return 'text-blue-400 border-blue-900/50 bg-blue-500/5';
+      case 'OPERATIONAL': return 'text-emerald-400 border-emerald-900/50 bg-emerald-500/5';
       default: return 'text-slate-500 border-slate-800 bg-slate-500/5';
     }
   };
 
   return (
     <div className="relative">
-      {/* Vizuální linka hierarchie */}
-      {depth > 0 && (
-        <div className="absolute -left-4 top-0 bottom-0 w-px bg-brand-border/20" />
-      )}
+      {depth > 0 && <div className="absolute -left-4 top-0 bottom-0 w-px bg-brand-border/20" />}
       
       <div className={`
         group flex items-center gap-4 p-3 mb-1 transition-all border-l-2
         ${node.isVacant 
-          ? 'bg-red-500/5 border-red-500/50 animate-in fade-in' 
+          ? 'bg-red-500/5 border-red-500/50' 
           : 'bg-brand-panel/10 border-brand-accent/30 hover:bg-brand-panel/30 hover:border-brand-accent'}
       `}>
         <button 
@@ -40,7 +40,7 @@ const OccupationNode = ({ node, depth }: { node: OccupationTreeResponse; depth: 
           {isOpen ? <ChevronDown size={14} /> : <ChevronRight size={14} />}
         </button>
 
-        <div className={`p-2 rounded-sm transition-colors ${node.isVacant ? 'bg-red-500/10' : 'bg-brand-accent/5'}`}>
+        <div className={`p-2 rounded-sm ${node.isVacant ? 'bg-red-500/10' : 'bg-brand-accent/5'}`}>
           {node.isVacant ? (
             <UserMinus size={16} className="text-red-500 animate-pulse" />
           ) : (
@@ -58,29 +58,21 @@ const OccupationNode = ({ node, depth }: { node: OccupationTreeResponse; depth: 
             </span>
           </div>
           <div className="text-[10px] font-mono flex items-center gap-2 mt-0.5">
-            {node.isVacant ? (
-              <span className="text-red-500/60 uppercase tracking-widest text-[8px] italic animate-pulse">
-                [ UNASSIGNED_SLOT ]
-              </span>
-            ) : (
-              <span className="text-brand-accent/60 tracking-tight uppercase font-bold truncate">
-                {node.currentOccupantName}
-              </span>
-            )}
+            <span className={`${node.isVacant ? 'text-red-500/60 italic' : 'text-brand-accent/60 font-bold'} tracking-tight uppercase`}>
+              {node.isVacant ? '[ UNASSIGNED_SLOT ]' : node.currentOccupantName}
+            </span>
           </div>
         </div>
 
-        {/* Category Badge z tvého OccupationCategory typu */}
         <div className={`text-[8px] font-mono uppercase px-2 py-0.5 border rounded-sm tracking-widest ${getCategoryColor(node.category)}`}>
           {node.category}
         </div>
       </div>
 
-      {/* Subordinates Wrapper */}
       {isOpen && hasSubordinates && (
         <div className="ml-8 mt-1 space-y-1 animate-in slide-in-from-left-2 duration-300">
           {node.subordinates.map((sub) => (
-            <OccupationNode key={sub.publicId} node={sub} depth={depth + 1} />
+            <OccupationNodeTactical key={sub.publicId} node={sub} depth={depth + 1} />
           ))}
         </div>
       )}
@@ -88,7 +80,10 @@ const OccupationNode = ({ node, depth }: { node: OccupationTreeResponse; depth: 
   );
 };
 
+// --- 3. MAIN PAGE COMPONENT ---
 const HierarchyPage = () => {
+  const [viewMode, setViewMode] = useState<'tactical' | 'visual'>('tactical');
+
   const { data: tree, isLoading } = useQuery<OccupationTreeResponse[]>({
     queryKey: ['occupation-tree'],
     queryFn: async () => {
@@ -97,13 +92,12 @@ const HierarchyPage = () => {
     }
   });
 
-  // Pomocné statistiky pro header
   const totalSlots = tree ? countNodes(tree) : 0;
   const vacantSlots = tree ? countVacant(tree) : 0;
 
   return (
     <div className="h-full flex flex-col bg-brand-dark overflow-hidden font-sans">
-      {/* TACTICAL HEADER */}
+      {/* HEADER SECTION */}
       <div className="p-8 border-b border-brand-border bg-brand-panel/20 relative">
         <div className="absolute top-0 right-0 w-64 h-full bg-gradient-to-l from-brand-accent/5 to-transparent" />
         
@@ -120,6 +114,22 @@ const HierarchyPage = () => {
               Operational Real-time Structural Mapping // Project_Faust
             </p>
           </div>
+
+          {/* VIEW SWITCHER */}
+          <div className="flex bg-black/40 border border-brand-border p-1 rounded-sm overflow-hidden">
+            <button 
+              onClick={() => setViewMode('tactical')}
+              className={`flex items-center gap-2 px-4 py-2 text-[10px] font-mono transition-all ${viewMode === 'tactical' ? 'bg-brand-accent text-black' : 'text-slate-500 hover:bg-white/5'}`}
+            >
+              <LayoutList size={14} /> [ 01_TACTICAL ]
+            </button>
+            <button 
+              onClick={() => setViewMode('visual')}
+              className={`flex items-center gap-2 px-4 py-2 text-[10px] font-mono transition-all ${viewMode === 'visual' ? 'bg-brand-accent text-black' : 'text-slate-500 hover:bg-white/5'}`}
+            >
+              <Network size={14} /> [ 02_VISUAL ]
+            </button>
+          </div>
           
           <div className="grid grid-cols-2 gap-4 font-mono">
             <StatBox label="Total_Nodes" value={totalSlots} icon={<Activity size={12}/>} />
@@ -129,25 +139,32 @@ const HierarchyPage = () => {
       </div>
 
       {/* MAIN VIEWPORT */}
-      <div className="flex-1 overflow-auto p-8 custom-scrollbar bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px]">
-        <div className="max-w-5xl mx-auto">
-          {isLoading ? (
-            <div className="flex flex-col items-center justify-center h-64 gap-4">
-              <div className="w-12 h-1 border-2 border-brand-accent animate-pulse" />
-              <div className="font-mono text-[10px] text-brand-accent animate-pulse uppercase tracking-[1em]">
-                Establishing_Chain_Link...
-              </div>
-            </div>
-          ) : (
-            <div className="space-y-6">
-              {tree?.map((root) => (
-                <div key={root.publicId} className="bg-black/20 border border-brand-border/30 p-6 backdrop-blur-sm">
-                  <OccupationNode node={root} depth={0} />
+      <div className="flex-1 relative overflow-hidden bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px]">
+        {isLoading ? (
+          <div className="flex flex-col items-center justify-center h-full gap-4 animate-pulse">
+            <div className="w-12 h-1 bg-brand-accent" />
+            <div className="font-mono text-[10px] text-brand-accent uppercase tracking-[1em]">Establishing_Chain_Link...</div>
+          </div>
+        ) : (
+          <div className="h-full">
+            {viewMode === 'tactical' ? (
+              <div className="overflow-auto h-full p-8 custom-scrollbar">
+                <div className="max-w-5xl mx-auto space-y-6">
+                  {tree?.map((root) => (
+                    <div key={root.publicId} className="bg-black/20 border border-brand-border/30 p-6 backdrop-blur-sm">
+                      <OccupationNodeTactical node={root} depth={0} />
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
-          )}
-        </div>
+              </div>
+            ) : (
+              // NOVÁ KOMPONENTA PRO VIZUÁLNÍ STROM (Coca-Cola styl)
+              <div className="w-full h-full">
+                <HierarchyFlow data={tree || []} />
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,8 +1,10 @@
 package com.projectfaust.entity;
 
 import com.projectfaust.entity.enums.ClearanceLevel;
+import com.projectfaust.entity.enums.ContactType;
 import com.projectfaust.entity.enums.EducationLevel;
 import com.projectfaust.entity.enums.Gender;
+import io.swagger.v3.oas.annotations.info.Contact;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.*;
@@ -12,21 +14,19 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.envers.Audited;
 import org.hibernate.type.SqlTypes;
 import org.hibernate.validator.constraints.URL;
-
 import java.time.LocalDate;
 import java.time.Period;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+
 
 /**
  * Representuje fyzickou osobu v systému Projekt Faust.
  * Uchovává biografické údaje, vzdělání a politickou příslušnost.
+ * Identita osoby je fixována pomocí externalId, zatímco jména jsou vedena v historii.
  */
 @Entity
 @Table(name = "persons", indexes = {
         @Index(name = "idx_person_external_id", columnList = "externalId"),
-        @Index(name = "idx_person_last_name", columnList = "lastName"),
         @Index(name = "idx_person_nationality", columnList = "nationality")
 })
 @Audited
@@ -46,10 +46,20 @@ public class Person {
     @JdbcTypeCode(SqlTypes.UUID)
     private UUID externalId = UUID.randomUUID();
 
-    @Column(nullable = false)
+    /**
+     * @deprecated Jména jsou nyní spravována v entitě PersonName.
+     * Ponecháno pro účely databázové migrace.
+     */
+    @Deprecated
+    @Column(name = "first_name", nullable = true)
     private String firstName;
 
-    @Column(nullable = false)
+    /**
+     * @deprecated Jména jsou nyní spravována v entitě PersonName.
+     * Ponecháno pro účely databázové migrace.
+     */
+    @Deprecated
+    @Column(name = "last_name", nullable = true)
     private String lastName;
 
     private String titleBefore;
@@ -60,10 +70,6 @@ public class Person {
     private EducationLevel educationLevel;
 
     private String fieldOfStudy;
-
-    private String email;
-
-    private String phone;
 
     @Column(name = "political_affiliation")
     private String politicalAffiliation;
@@ -76,23 +82,13 @@ public class Person {
     @URL(message = "Provided photo storage path must be a valid URL")
     private String photoUrl;
 
-    /**
-     * Odkaz na oficiální životopis nebo profil (např. na webu vlády nebo LinkedIn).
-     */
     private String profileUrl;
 
-    /**
-     * Aktuální stupeň bezpečnostní prověrky dle NBÚ.
-     * Nutné pro validaci Appointmentu do citlivých pozic.
-     */
     @Enumerated(EnumType.STRING)
     @Builder.Default
     @Column(nullable = false)
     private ClearanceLevel clearanceLevel = ClearanceLevel.LEVEL_1_PUBLIC;
 
-    /**
-     * Speciální sloupec spravovaný databází pro fulltextové vyhledávání.
-     */
     @Column(name = "full_name_search_normalized", insertable = false, updatable = false)
     private String fullNameSearchNormalized;
 
@@ -109,37 +105,65 @@ public class Person {
     @Column(name = "place_of_birth")
     private String placeOfBirth;
 
-    /**
-     * Datum úmrtí pro historické záznamy.
-     */
     private LocalDate deathDate;
 
     /**
-     * Vypočítá aktuální věk osoby k dnešnímu dni nebo ke dni úmrtí.
-     * @return věk v letech nebo null, pokud není známo datum narození.
+     * Seznam všech jmen (historická, rodná, aliasy).
+     */
+    @OneToMany(mappedBy = "person", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<PersonName> names = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @Builder.Default
+    private List<Appointment> appointments = new ArrayList<>();
+
+    @OneToMany(mappedBy = "sourcePerson", cascade = CascadeType.ALL)
+    @Builder.Default
+    private List<PersonConnection> sourceConnections = new ArrayList<>();
+
+    @OneToMany(mappedBy = "person", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    private Set<PersonContact> contacts = new LinkedHashSet<>();
+
+    @OneToMany(mappedBy = "person", fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @Builder.Default
+    private Set<PersonAccountRelation> financialAccounts = new LinkedHashSet<>();
+
+    /**
+     * Vrátí aktuální primární jméno osoby.
      */
     @Transient
+    public PersonName getPrimaryNameRecord() {
+        return names.stream()
+                .filter(PersonName::isPrimary)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @Transient
     public Integer getAge() {
-        if (birthDate == null) {
-            return null;
-        }
+        if (birthDate == null) return null;
         LocalDate endPoint = (deathDate != null) ? deathDate : LocalDate.now();
         return Period.between(birthDate, endPoint).getYears();
     }
 
     /**
      * Vrátí plné jméno osoby formátované podle českých typografických pravidel.
-     * Příklad: "Ing. Petr Pavel, M.A."
+     * Prioritně bere data z tabulky person_names, sekundárně z fallback polí.
      */
     @Transient
     public String getFullName() {
-        StringBuilder sb = new StringBuilder();
+        PersonName primary = getPrimaryNameRecord();
+        String fName = (primary != null) ? primary.getFirstName() : this.firstName;
+        String lName = (primary != null) ? primary.getLastName() : this.lastName;
 
+        if (fName == null || lName == null) return "Neznámá identita";
+
+        StringBuilder sb = new StringBuilder();
         if (titleBefore != null && !titleBefore.isBlank()) {
             sb.append(titleBefore.trim()).append(" ");
         }
 
-        sb.append(firstName.trim()).append(" ").append(lastName.trim());
+        sb.append(fName.trim()).append(" ").append(lName.trim());
 
         if (titleAfter != null && !titleAfter.isBlank()) {
             sb.append(", ").append(titleAfter.trim());
@@ -149,14 +173,26 @@ public class Person {
     }
 
     /**
-     * Seznam všech jmenování (historie i současnost), která jsou navázána na tuto osobu.
-     * mappedBy = "person" odkazuje na pole 'person' ve třídě Appointment.
+     * Helper to retrieve the current primary active email address for the SPA dashboard.
      */
-    @OneToMany(mappedBy = "person", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @Builder.Default
-    private List<Appointment> appointments = new ArrayList<>();
+    @Transient
+    public String getPrimaryEmail() {
+        return contacts.stream()
+                .filter(c -> c.isActive() && c.getContactType() == ContactType.EMAIL)
+                .findFirst()
+                .map(PersonContact::getContactValueRaw)
+                .orElse(null);
+    }
 
-
-    @OneToMany(mappedBy = "sourcePerson", cascade = CascadeType.ALL)
-    private List<PersonConnection> sourceConnections = new ArrayList<>();
+    /**
+     * Helper to retrieve the current primary active mobile connection.
+     */
+    @Transient
+    public String getPrimaryPhone() {
+        return contacts.stream()
+                .filter(c -> c.isActive() && c.getContactType() == ContactType.CELLULAR_GSM)
+                .findFirst()
+                .map(PersonContact::getContactValueRaw)
+                .orElse(null);
+    }
 }

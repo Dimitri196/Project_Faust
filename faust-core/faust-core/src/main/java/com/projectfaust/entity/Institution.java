@@ -12,9 +12,7 @@ import org.hibernate.envers.NotAudited;
 import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * Entita reprezentující organizační uzel v projektu Faust.
@@ -122,6 +120,10 @@ public class Institution implements Hierarchical<Institution> {
     @NotAudited // Historii vazeb řeší strana "ManyToOne", seznam dětí v auditu nepotřebujeme
     @Builder.Default
     private List<Institution> children = new ArrayList<>();
+
+    @OneToMany(mappedBy = "institution", fetch = FetchType.LAZY, cascade = CascadeType.ALL, orphanRemoval = true)
+    @Builder.Default
+    private Set<InstitutionAccountRelation> financialAccounts = new LinkedHashSet<>();
 
     // --- AUDIT METADATA ---
 

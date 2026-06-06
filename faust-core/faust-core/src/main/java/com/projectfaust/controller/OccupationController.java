@@ -103,4 +103,19 @@ public class OccupationController {
     public ResponseEntity<List<OccupationAscendedResponse>> getSubordinates(@PathVariable UUID id) {
         return ResponseEntity.ok(service.getSubordinates(id));
     }
+
+    /**
+     * Resolves the functional chain of command starting from a specific node.
+     *
+     * @param id The UUID of the root position for the tree.
+     * @return A recursive tree representing the hierarchy starting from the target role.
+     */
+    @GetMapping("/{id}/tree")
+    @Operation(summary = "Get partial reporting tree",
+            description = "Returns the chain of command starting from the specified role for visual mapping.")
+    public ResponseEntity<OccupationTreeResponse> getOccupationTreeById(@PathVariable UUID id) {
+        // Voláme service pro získání podstromu pro konkrétní ID
+        return ResponseEntity.ok(service.getCommandChainById(id));
+    }
+
 }

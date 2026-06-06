@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-03-25T11:40:36+0100",
+    date = "2026-05-07T11:11:06+0200",
     comments = "version: 1.6.3, compiler: javac, environment: Java 25.0.1 (Eclipse Adoptium)"
 )
 @Component
@@ -102,6 +102,8 @@ public class OccupationMapperImpl implements OccupationMapper {
 
         UUID publicId = null;
         List<OccupationTreeResponse> subordinates = null;
+        String currentOccupantName = null;
+        UUID personPublicId = null;
         String title = null;
         String code = null;
         OccupationCategory category = null;
@@ -111,6 +113,8 @@ public class OccupationMapperImpl implements OccupationMapper {
 
         publicId = entity.getExternalId();
         subordinates = toTreeResponseList( entity.getSubordinates() );
+        currentOccupantName = mapCurrentOccupant( entity );
+        personPublicId = mapPersonPublicId( entity );
         title = entity.getTitle();
         code = entity.getCode();
         category = entity.getCategory();
@@ -118,10 +122,9 @@ public class OccupationMapperImpl implements OccupationMapper {
         active = entity.isActive();
         rank = entity.getRank();
 
-        String currentOccupantName = mapCurrentOccupant(entity);
         boolean isVacant = false;
 
-        OccupationTreeResponse occupationTreeResponse = new OccupationTreeResponse( publicId, title, code, category, requiredClearanceLevel, isVacant, active, rank, currentOccupantName, subordinates );
+        OccupationTreeResponse occupationTreeResponse = new OccupationTreeResponse( publicId, title, code, category, requiredClearanceLevel, isVacant, active, rank, currentOccupantName, subordinates, personPublicId );
 
         return occupationTreeResponse;
     }
@@ -147,12 +150,14 @@ public class OccupationMapperImpl implements OccupationMapper {
         }
 
         UUID publicId = null;
+        String currentOccupantName = null;
         String title = null;
         String category = null;
         String rank = null;
         ClearanceLevel requiredClearanceLevel = null;
 
         publicId = entity.getExternalId();
+        currentOccupantName = mapCurrentOccupant( entity );
         title = entity.getTitle();
         if ( entity.getCategory() != null ) {
             category = entity.getCategory().name();
@@ -160,7 +165,6 @@ public class OccupationMapperImpl implements OccupationMapper {
         rank = entity.getRank();
         requiredClearanceLevel = entity.getRequiredClearanceLevel();
 
-        String currentOccupantName = mapCurrentOccupant(entity);
         boolean isVacant = false;
 
         OccupationAscendedResponse occupationAscendedResponse = new OccupationAscendedResponse( publicId, title, category, rank, isVacant, requiredClearanceLevel, currentOccupantName );

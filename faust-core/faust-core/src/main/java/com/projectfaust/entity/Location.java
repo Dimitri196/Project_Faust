@@ -133,3 +133,5 @@ public class Location implements Hierarchical<Location> {
         return this.name;
     }
 }
+
+// pridat nekolik novych entit pro zpracovani dat z CSSZ, ZP, verejnych registru (Katastr, Auto, Busines, apod), social network.

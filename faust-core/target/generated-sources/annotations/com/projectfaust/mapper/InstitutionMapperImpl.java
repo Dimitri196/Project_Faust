@@ -11,6 +11,7 @@ import com.projectfaust.entity.enums.ClearanceLevel;
 import com.projectfaust.entity.enums.HierarchicalLevel;
 import com.projectfaust.entity.enums.InstitutionType;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
 import javax.annotation.processing.Generated;
@@ -18,7 +19,7 @@ import org.springframework.stereotype.Component;
 
 @Generated(
     value = "org.mapstruct.ap.MappingProcessor",
-    date = "2026-03-25T11:40:36+0100",
+    date = "2026-05-07T11:11:06+0200",
     comments = "version: 1.6.3, compiler: javac, environment: Java 25.0.1 (Eclipse Adoptium)"
 )
 @Component
@@ -102,48 +103,72 @@ public class InstitutionMapperImpl implements InstitutionMapper {
     }
 
     @Override
-    public void updateEntityFromRequest(InstitutionRequest request, Institution entity) {
-        if ( request == null ) {
-            return;
-        }
-
-        entity.setName( request.name() );
-        entity.setLevel( request.level() );
-        entity.setType( request.type() );
-        entity.setClearanceLevel( request.clearanceLevel() );
-        entity.setActive( request.active() );
-        entity.setDescription( request.description() );
-        entity.setLogoUrl( request.logoUrl() );
-        entity.setWebsiteUrl( request.websiteUrl() );
-    }
-
-    @Override
     public InstitutionTreeResponse toTreeResponse(Institution entity) {
         if ( entity == null ) {
             return null;
         }
 
         UUID publicId = null;
-        List<InstitutionTreeResponse> children = null;
         boolean isStateOwned = false;
-        boolean active = false;
+        String logoUrl = null;
+        List<InstitutionTreeResponse> children = null;
         String name = null;
         HierarchicalLevel level = null;
         InstitutionType type = null;
         ClearanceLevel clearanceLevel = null;
         String description = null;
+        boolean active = false;
 
         publicId = entity.getExternalId();
-        children = toTreeResponseList( entity.getChildren() );
         isStateOwned = entity.isStateOwned();
-        active = entity.isActive();
+        logoUrl = entity.getLogoUrl();
+        children = toTreeResponseListDeep( entity.getChildren() );
         name = entity.getName();
         level = entity.getLevel();
         type = entity.getType();
         clearanceLevel = entity.getClearanceLevel();
         description = entity.getDescription();
+        active = entity.isActive();
 
-        InstitutionTreeResponse institutionTreeResponse = new InstitutionTreeResponse( publicId, name, level, type, clearanceLevel, description, isStateOwned, active, children );
+        boolean hasChildren = !entity.getChildren().isEmpty();
+        InstitutionTreeResponse parent = null;
+
+        InstitutionTreeResponse institutionTreeResponse = new InstitutionTreeResponse( publicId, name, level, type, clearanceLevel, description, isStateOwned, active, hasChildren, parent, children, logoUrl );
+
+        return institutionTreeResponse;
+    }
+
+    @Override
+    public InstitutionTreeResponse toFlatTreeResponse(Institution entity) {
+        if ( entity == null ) {
+            return null;
+        }
+
+        UUID publicId = null;
+        String logoUrl = null;
+        boolean isStateOwned = false;
+        String name = null;
+        HierarchicalLevel level = null;
+        InstitutionType type = null;
+        ClearanceLevel clearanceLevel = null;
+        String description = null;
+        boolean active = false;
+
+        publicId = entity.getExternalId();
+        logoUrl = entity.getLogoUrl();
+        isStateOwned = entity.isStateOwned();
+        name = entity.getName();
+        level = entity.getLevel();
+        type = entity.getType();
+        clearanceLevel = entity.getClearanceLevel();
+        description = entity.getDescription();
+        active = entity.isActive();
+
+        List<InstitutionTreeResponse> children = null;
+        InstitutionTreeResponse parent = null;
+        boolean hasChildren = !entity.getChildren().isEmpty();
+
+        InstitutionTreeResponse institutionTreeResponse = new InstitutionTreeResponse( publicId, name, level, type, clearanceLevel, description, isStateOwned, active, hasChildren, parent, children, logoUrl );
 
         return institutionTreeResponse;
     }
@@ -157,40 +182,26 @@ public class InstitutionMapperImpl implements InstitutionMapper {
         UUID publicId = null;
         InstitutionAscendedResponse parent = null;
         boolean isStateOwned = false;
-        boolean active = false;
         String name = null;
         HierarchicalLevel level = null;
         InstitutionType type = null;
         ClearanceLevel clearanceLevel = null;
         String description = null;
+        boolean active = false;
 
         publicId = entity.getExternalId();
         parent = toAscendedResponse( entity.getParent() );
         isStateOwned = entity.isStateOwned();
-        active = entity.isActive();
         name = entity.getName();
         level = entity.getLevel();
         type = entity.getType();
         clearanceLevel = entity.getClearanceLevel();
         description = entity.getDescription();
+        active = entity.isActive();
 
         InstitutionAscendedResponse institutionAscendedResponse = new InstitutionAscendedResponse( publicId, name, level, type, clearanceLevel, description, isStateOwned, active, parent );
 
         return institutionAscendedResponse;
-    }
-
-    @Override
-    public List<InstitutionTreeResponse> toTreeResponseList(List<Institution> entities) {
-        if ( entities == null ) {
-            return null;
-        }
-
-        List<InstitutionTreeResponse> list = new ArrayList<InstitutionTreeResponse>( entities.size() );
-        for ( Institution institution : entities ) {
-            list.add( toTreeResponse( institution ) );
-        }
-
-        return list;
     }
 
     private UUID entityParentExternalId(Institution institution) {

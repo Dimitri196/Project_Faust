@@ -88,4 +88,16 @@ public class OccupationService {
         return mapper.toAscendedResponseList(subordinates);
     }
 
+    @Transactional(readOnly = true)
+    public OccupationTreeResponse getCommandChainById(UUID publicId) {
+        log.info("Generating Visual Nexus branch for node: {}", publicId);
+
+        // 1. Najdeme startovní uzel (root podstromu)
+        Occupation root = occupationRepository.findByExternalId(publicId)
+                .orElseThrow(() -> new EntityNotFoundException("Node not found in FAUST registry: " + publicId));
+
+        // 2. Mapper rekurzivně projde 'subordinates' a vytvoří strom
+        return mapper.toTreeResponse(root);
+    }
+
 }

@@ -10,23 +10,83 @@
   html, body, #root {
     margin: 0;
     padding: 0;
-    height: 100%;
-    background-color: #020617; /* brand-dark */
+    /* Důležité: Fixní rozměry zabrání rozpadu při zoomu */
+    height: 100vh;
+    width: 100vw;
+    background-color: #020617;
+    color: #f8fafc;
     overflow: hidden;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    /* Zvětšíme základní písmo o 25%, aby při 50% zoomu nebylo titěrné */
+    font-size: 18px; 
   }
 
-  /* Toto vynutí rozložení, i kdyby Tailwind selhal v JS */
   #root {
     display: flex !important;
-    width: 100vw;
+    flex-direction: column;
+  }
+
+  /* Globální scrollbar - masivní a industriální */
+  ::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+  }
+  ::-webkit-scrollbar-track {
+    background: #020617;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: #1e293b;
+    border: 1px solid #3b82f633;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: #3b82f6;
   }
 }
 
 @layer components {
-  .nexus-line {
-    @apply absolute left-0 top-0 bottom-0 w-px bg-gradient-to-b from-brand-accent/50 via-brand-accent/10 to-transparent;
+  /* CRT Overlay - pro celý web */
+  .crt-screen {
+    position: relative;
+    overflow: hidden;
   }
-  .node-hover {
-    @apply hover:bg-brand-accent/5 hover:border-brand-accent/30 transition-all duration-300;
+
+  .crt-screen::before {
+    content: " ";
+    display: block;
+    position: absolute;
+    top: 0; left: 0; bottom: 0; right: 0;
+    background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.15) 50%), 
+                linear-gradient(90deg, rgba(255, 0, 0, 0.03), rgba(0, 255, 0, 0.01), rgba(0, 0, 255, 0.03));
+    z-index: 999;
+    background-size: 100% 3px, 4px 100%;
+    pointer-events: none;
   }
+
+  /* Scanline - pohyblivý pruh přes obrazovku */
+  .vignette {
+    position: fixed;
+    top: 0; left: 0; width: 100%; height: 100%;
+    box-shadow: inset 0 0 150px rgba(0,0,0,0.6);
+    pointer-events: none;
+    z-index: 1000;
+  }
+
+  /* Standardní karta pro Macro-UI */
+  .nexus-card {
+    @apply bg-slate-900/50 border-2 border-slate-800 rounded-[2rem] p-8 
+           backdrop-blur-xl transition-all duration-500 hover:border-blue-500/40 shadow-2xl;
+  }
+
+  /* Velké industriální titulky */
+  .nexus-title {
+    @apply text-macro-2xl font-black uppercase tracking-tighter leading-none text-white drop-shadow-2xl;
+  }
+}
+
+/* Odstranění původních Vite stylů, které centrovaly obsah do malého boxu */
+#root {
+  max-width: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  text-align: left !important;
 }

@@ -52,7 +52,13 @@ public class AcademicThesis {
 
     private String facultyName;
 
-    private String supervisorName; // Jméno vedoucího práce - klíčové pro graf vztahů!
+    /**
+     * Jméno vedoucího práce - klíčové pro graf vztahů!.
+     */
+    private String supervisorName; // Zde zejmena musime prijit na to,
+    // zda pouziti pole pri jmeno dotycneho vedeuciho nenahradime
+    // jiz existujici osobou z db, anebo, v pripade ze osoba jeste neni v db,
+    // tak ji ulozime jako String s patternem Jmeno a Prijmeni, pak to dekodujeme jako osobu.
 
     private Integer defenseYear;
 
@@ -76,7 +82,8 @@ public class AcademicThesis {
     @PrePersist
     protected void onCreate() { createdAt = OffsetDateTime.now(); }
 
-    private String opponentName; // Druhý klíčový kontakt v akademické síti
+    private String opponentName; // Druhý klíčový kontakt v akademické síti.
+    // Zde musime postupavat stejne jako u vedouciho prace. Viz supervisorName.
 
     @Column(columnDefinition = "TEXT")
     private String keywords; // Pro fulltext a automatickou profilaci subjektu

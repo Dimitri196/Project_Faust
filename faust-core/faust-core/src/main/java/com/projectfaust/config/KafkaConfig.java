@@ -48,6 +48,7 @@ public class KafkaConfig {
         configProps.put(org.apache.kafka.clients.producer.ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         configProps.put(org.apache.kafka.clients.producer.ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, org.apache.kafka.common.serialization.StringSerializer.class);
         configProps.put(org.apache.kafka.clients.producer.ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, org.springframework.kafka.support.serializer.JsonSerializer.class);
+        //Vyresit nesrovnalosti balickuv v pom.xml. JSON sereialization might be obsolet library.
         return new DefaultKafkaProducerFactory<>(configProps);
     }
 

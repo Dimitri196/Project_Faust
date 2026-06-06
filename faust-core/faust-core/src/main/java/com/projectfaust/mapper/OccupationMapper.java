@@ -14,8 +14,6 @@ import java.util.List;
 
 /**
  * MapStruct mapper for the Occupation domain.
- * Manages the transformation of organizational roles into structured reporting trees
- * and resolves the identity of current office holders within the hierarchy.
  */
 @Mapper(
         componentModel = MappingConstants.ComponentModel.SPRING,
@@ -25,7 +23,6 @@ public interface OccupationMapper {
 
     /**
      * Initializes a new Occupation entity from a request.
-     * Technical IDs and relational links are ignored for service-layer handling.
      */
     @Mapping(target = "id", ignore = true)
     @Mapping(target = "externalId", ignore = true)
@@ -36,7 +33,6 @@ public interface OccupationMapper {
 
     /**
      * Maps an Occupation to a standard flat response.
-     * Flattens institutional and supervisory metadata for reporting.
      */
     @Mapping(source = "externalId", target = "publicId")
     @Mapping(source = "institution.name", target = "institutionName")
@@ -49,11 +45,11 @@ public interface OccupationMapper {
 
     /**
      * Maps to a recursive tree structure (Downward hierarchy).
-     * Includes the current occupant's name and administrative status.
      */
     @Mapping(source = "externalId", target = "publicId")
     @Mapping(source = "subordinates", target = "subordinates")
-    @Mapping(target = "currentOccupantName", expression = "java(mapCurrentOccupant(entity))")
+    @Mapping(target = "currentOccupantName", source = "entity")
+    @Mapping(target = "personPublicId", source = "entity")
     OccupationTreeResponse toTreeResponse(Occupation entity);
 
     List<OccupationTreeResponse> toTreeResponseList(List<Occupation> entities);
@@ -62,17 +58,14 @@ public interface OccupationMapper {
      * Maps to a lightweight navigation object (Upward/Ascended hierarchy).
      */
     @Mapping(source = "externalId", target = "publicId")
-    @Mapping(target = "currentOccupantName", expression = "java(mapCurrentOccupant(entity))")
+    @Mapping(target = "currentOccupantName", source = "entity")
     OccupationAscendedResponse toAscendedResponse(Occupation entity);
 
+    // TATO METODA CHYBĚLA - proto service svítila červeně
     List<OccupationAscendedResponse> toAscendedResponseList(List<Occupation> entities);
 
     /**
      * Resolves the identity of the individual currently holding this position.
-     * Handles specific administrative states: Vacant, Acting, or In Transition.
-     *
-     * @param entity The occupation entity to analyze.
-     * @return A formatted string of the occupant's name or current status.
      */
     default String mapCurrentOccupant(Occupation entity) {
         if (entity.getAppointments() == null || entity.getAppointments().isEmpty()) {
@@ -85,5 +78,17 @@ public interface OccupationMapper {
                     return app.isActing() ? "(Acting) " + fullName : fullName;
                 })
                 .orElse(entity.isVacant() ? "VACANT" : "In transition");
+    }
+
+    /**
+     * Resolves the UUID of the person currently holding the office.
+     * Crucial for frontend navigation to person dossier.
+     */
+    default java.util.UUID mapPersonPublicId(Occupation entity) {
+        if (entity.getAppointments() == null) return null;
+
+        return entity.findCurrentAppointment()
+                .map(app -> app.getPerson().getExternalId())
+                .orElse(null);
     }
 }

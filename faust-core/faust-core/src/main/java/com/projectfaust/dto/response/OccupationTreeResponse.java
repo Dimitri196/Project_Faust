@@ -16,5 +16,6 @@ public record OccupationTreeResponse(
         boolean active,
         String rank,
         String currentOccupantName,
-        List<OccupationTreeResponse> subordinates
+        List<OccupationTreeResponse> subordinates,
+        UUID personPublicId
 ) {}

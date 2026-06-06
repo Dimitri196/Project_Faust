@@ -5,8 +5,11 @@ import com.projectfaust.dto.response.InstitutionAscendedResponse;
 import com.projectfaust.dto.response.InstitutionResponse;
 import com.projectfaust.dto.response.InstitutionTreeResponse;
 import com.projectfaust.dto.response.LocationResponse;
+import com.projectfaust.entity.BankAccount;
 import com.projectfaust.entity.Institution;
+import com.projectfaust.entity.InstitutionAccountRelation;
 import com.projectfaust.mapper.InstitutionMapper;
+import com.projectfaust.repository.BankAccountRepository;
 import com.projectfaust.repository.InstitutionRepository;
 import com.projectfaust.repository.LocationRepository;
 import com.projectfaust.specification.InstitutionSpecifications;
@@ -19,14 +22,10 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.UUID;
 
-/**
- * Core service for institutional lifecycle management and hierarchy traversal.
- * Handles the complexities of recursive tree building, security clearance inheritance,
- * and multi-parameter discovery of state-corporate entities.
- */
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -37,42 +36,63 @@ public class InstitutionService {
     private final HierarchyValidator hierarchyValidator;
     private final LocationService locationService;
     private final LocationRepository locationRepository;
+    private final BankAccountRepository bankAccountRepository; // 👈 PŘIDÁNO
 
-    /**
-     * Vytvoří jednu instituci s validací hierarchie a bezpečnosti.
-     */
+    // --- WRITE OPERATIONS ---
+
     @Transactional
     public InstitutionResponse create(InstitutionRequest request) {
         log.info("FAUST_INST: Creating institution: {}", request.name());
         Institution entity = prepareEntity(request);
+
+        // Synchronizace finančních účtů před uložením
+        syncFinancialVectors(entity, request);
+
         return enrich(mapper.toResponse(repository.save(entity)), entity);
     }
 
-    /**
-     * Bulk vytvoření. Ideální pro hromadný import úřadů.
-     */
     @Transactional
-    public List<InstitutionResponse> createBulk(List<InstitutionRequest> requests) {
-        log.info("FAUST_INST_BULK: Processing {} requests", requests.size());
+    public InstitutionResponse update(UUID publicId, InstitutionRequest request) {
+        log.info("FAUST_INST: Updating institution: {}", publicId);
+        Institution entity = repository.findByExternalId(publicId)
+                .orElseThrow(() -> new EntityNotFoundException("Institution not found: " + publicId));
 
-        return requests.stream()
-                .map(this::create) // Voláme interní create pro zajištění validací u každého kusu
-                .toList();
-    }
+        // Aktualizace plochých vlastností (případně přes tvůj aktualizační mapper)
+        entity.setName(request.name());
+        entity.setLevel(request.level());
+        entity.setType(request.type());
+        entity.setClearanceLevel(request.clearanceLevel());
+        entity.setStateOwned(request.isStateOwned());
+        entity.setActive(request.active());
+        entity.setDescription(request.description());
+        entity.setLogoUrl(request.logoUrl());
+        entity.setWebsiteUrl(request.websiteUrl());
 
-    /**
-     * Pomocná metoda pro přípravu entity (DRY - Don't Repeat Yourself).
-     */
-    private Institution prepareEntity(InstitutionRequest request) {
-        Institution entity = mapper.toEntity(request);
-
-        // Lokace
         if (request.locationId() != null) {
             entity.setLocation(locationRepository.findByExternalId(request.locationId())
                     .orElseThrow(() -> new EntityNotFoundException("Location node not found")));
         }
 
-        // Hierarchie
+        // Aktualizace hierarchie a financí
+        syncFinancialVectors(entity, request);
+
+        return enrich(mapper.toResponse(repository.save(entity)), entity);
+    }
+
+    @Transactional
+    public List<InstitutionResponse> createBulk(List<InstitutionRequest> requests) {
+        log.info("FAUST_INST_BULK: Processing {} requests", requests.size());
+        return requests.stream().map(this::create).toList();
+    }
+
+    private Institution prepareEntity(InstitutionRequest request) {
+        Institution entity = mapper.toEntity(request);
+
+        if (request.locationId() != null) {
+            entity.setLocation(locationRepository.findByExternalId(request.locationId())
+                    .orElseThrow(() -> new EntityNotFoundException("Location node not found")));
+        }
+
         if (request.parentExternalId() != null) {
             Institution parent = repository.findByExternalId(request.parentExternalId())
                     .orElseThrow(() -> new EntityNotFoundException("Parent institution not found"));
@@ -80,7 +100,6 @@ public class InstitutionService {
             hierarchyValidator.verifyNoCircularReference(entity, parent);
             entity.setParent(parent);
 
-            // Dědičnost bezpečnosti
             if (entity.getClearanceLevel().getWeight() < parent.getClearanceLevel().getWeight()) {
                 entity.setClearanceLevel(parent.getClearanceLevel());
             }
@@ -88,19 +107,66 @@ public class InstitutionService {
         return entity;
     }
 
-    // --- Navigační metody pro Controller ---
+    // --- FININT SYNCHRONIZATION ENGINE ---
+
+    private void syncFinancialVectors(Institution institution, InstitutionRequest request) {
+        if (institution.getFinancialAccounts() == null) {
+            institution.setFinancialAccounts(new LinkedHashSet<>());
+        } else {
+            institution.getFinancialAccounts().clear();
+        }
+
+        if (request.financialAccounts() == null || request.financialAccounts().isEmpty()) {
+            return;
+        }
+
+        for (var finReq : request.financialAccounts()) {
+            BankAccount account;
+
+            if (finReq.bankAccountExternalId() != null) {
+                // Připojení stávajícího globálního účtu
+                account = bankAccountRepository.findByExternalId(finReq.bankAccountExternalId())
+                        .orElseThrow(() -> new EntityNotFoundException("Global BankAccount not found: " + finReq.bankAccountExternalId()));
+            } else if (finReq.newBankAccountData() != null) {
+                // Prevence duplicity: podíváme se, jestli už IBAN v systému náhodou není
+                String incomingIban = finReq.newBankAccountData().iban().trim().replaceAll("\\s+", "");
+                account = bankAccountRepository.findByIban(incomingIban)
+                        .orElseGet(() -> bankAccountRepository.save(BankAccount.builder()
+                                .iban(incomingIban)
+                                .bic(finReq.newBankAccountData().bic() != null ? finReq.newBankAccountData().bic().trim() : null)
+                                .bankName(finReq.newBankAccountData().bankName().trim())
+                                .currency(finReq.newBankAccountData().currency().toUpperCase().trim())
+                                .isMonitored(finReq.newBankAccountData().isMonitored())
+                                .analyticalNote(finReq.newBankAccountData().analyticalNote())
+                                .build()));
+            } else {
+                continue;
+            }
+
+            institution.getFinancialAccounts().add(InstitutionAccountRelation.builder()
+                    .institution(institution)
+                    .bankAccount(account)
+                    .roleType(finReq.roleType())
+                    .validFrom(finReq.validFrom())
+                    .validTo(finReq.validTo())
+                    .active(finReq.isActive())
+                    .build());
+        }
+    }
+
+    // --- NAVIGATION & TREE OPERATIONS ---
 
     @Transactional(readOnly = true)
-    public List<InstitutionResponse> getImmediateChildren(UUID parentPublicId) {
-        log.info("FAUST_QUERY: Fetching children for parent: {}", parentPublicId);
+    public List<InstitutionTreeResponse> getImmediateChildren(UUID parentPublicId) {
+        log.info("FAUST_QUERY: Fetching immediate children for parent: {}", parentPublicId);
         return repository.findByParent_ExternalId(parentPublicId).stream()
-                .map(entity -> enrich(mapper.toResponse(entity), entity))
+                .map(mapper::toTreeResponse)
                 .toList();
     }
 
     @Transactional(readOnly = true)
-    public List<InstitutionTreeResponse> getFullTree() {
-        log.info("FAUST_QUERY: Fetching complete hierarchy tree");
+    public List<InstitutionTreeResponse> getRootNodes() {
+        log.info("FAUST_QUERY: Fetching top-level roots");
         return repository.findAllRoots().stream()
                 .map(mapper::toTreeResponse)
                 .toList();
@@ -108,28 +174,24 @@ public class InstitutionService {
 
     @Transactional(readOnly = true)
     public InstitutionTreeResponse getSubTree(UUID publicId) {
-        Institution node = repository.findByExternalId(publicId)
+        log.info("FAUST_NEXUS: Decrypting deep hierarchy for node: {}", publicId);
+        Institution node = repository.findWithDeepHierarchyByExternalId(publicId)
                 .orElseThrow(() -> new EntityNotFoundException("Institution not found"));
         return mapper.toTreeResponse(node);
     }
 
-    @Transactional(readOnly = true)
-    public InstitutionAscendedResponse getAscendedPath(UUID publicId) {
-        Institution leaf = repository.findByExternalId(publicId)
-                .orElseThrow(() -> new EntityNotFoundException("Institution not found"));
-        return mapper.toAscendedResponse(leaf);
-    }
+    // --- DETAIL & SEARCH OPERATIONS ---
 
     @Transactional(readOnly = true)
     public InstitutionResponse getByPublicId(UUID publicId) {
-        return repository.findByExternalId(publicId)
+        // Použijeme optimalizovaný hluboký fetch z repository
+        return repository.findFullProfileByExternalId(publicId)
                 .map(entity -> enrich(mapper.toResponse(entity), entity))
                 .orElseThrow(() -> new EntityNotFoundException("Institution not found: " + publicId));
     }
 
     @Transactional(readOnly = true)
     public List<InstitutionResponse> search(String name, String country, Boolean isStateOwned, UUID locationId, UUID parentId) {
-        // Zde využíváme vylepšené specifikace, které už umí JOIN na lokaci pro countryCode
         Specification<Institution> spec = Specification
                 .where(InstitutionSpecifications.activeOnly())
                 .and(InstitutionSpecifications.nameContains(name))
@@ -144,7 +206,7 @@ public class InstitutionService {
     }
 
     /**
-     * Obohacení DTO o geografická data a breadcrumbs.
+     * OPRAVENO: Obohacení zohledňuje novou finanční komponentu z MapStruct DTO (16. parametr)
      */
     private InstitutionResponse enrich(InstitutionResponse dto, Institution entity) {
         List<LocationResponse> path = (entity.getLocation() != null)
@@ -157,7 +219,7 @@ public class InstitutionService {
                 dto.level(),
                 dto.type(),
                 entity.getClearanceLevel(),
-                dto.parentId(),
+                entity.getParent() != null ? entity.getParent().getExternalId() : null,
                 !entity.getChildren().isEmpty(),
                 dto.isStateOwned(),
                 entity.isActive(),
@@ -166,7 +228,28 @@ public class InstitutionService {
                 entity.getLocation() != null ? entity.getLocation().getName() : null,
                 path,
                 dto.logoUrl(),
-                dto.websiteUrl()
+                dto.websiteUrl(),
+                dto.financialAccounts() // 👈 16. ARGUMENT DOPLNĚN PRO KOMPILACI
         );
+    }
+
+    @Transactional(readOnly = true)
+    public InstitutionAscendedResponse getAscendedPath(UUID publicId) {
+        log.info("FAUST_QUERY: Resolving ascended path for node: {}", publicId);
+        Institution leaf = repository.findByExternalId(publicId)
+                .orElseThrow(() -> new EntityNotFoundException("Institution not found: " + publicId));
+        return mapper.toAscendedResponse(leaf);
+    }
+
+    @Transactional(readOnly = true)
+    public InstitutionTreeResponse getNexusFocus(UUID publicId) {
+        Institution target = repository.findWithDeepHierarchyByExternalId(publicId)
+                .orElseThrow(() -> new EntityNotFoundException());
+
+        Institution root = target;
+        while (root.getParent() != null) {
+            root = root.getParent();
+        }
+        return mapper.toTreeResponse(root);
     }
 }

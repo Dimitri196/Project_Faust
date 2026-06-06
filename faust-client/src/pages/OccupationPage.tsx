@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
 import { GitBranch, Info, Database, Layers, AlertCircle, Search } from 'lucide-react';
 import type { OccupationTreeResponse } from '../types';
-import OccupationNode from '../components/occupations/OccupationNode';
+import OccupationNode from '../components/occupations/OccupationNodeTactical';
 
 const OccupationsPage = () => {
   const { data: tree, isLoading, error } = useQuery<OccupationTreeResponse[]>({

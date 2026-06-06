@@ -31,13 +31,13 @@ spring:
 
   # JPA / Hibernate 7 Settings
   jpa:
+    open-in-view: false
     hibernate:
       ddl-auto: update
     show-sql: false
     properties:
       hibernate:
         format_sql: false
-        dialect: org.hibernate.dialect.PostgreSQLDialect
         # Hibernate Envers for Audit Logging
         integration:
           envers:

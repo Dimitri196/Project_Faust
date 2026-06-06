@@ -2,6 +2,12 @@ Doplnit interaktivní grafy (např. vytížení oddělení nebo rozpočtové tok
 Vytvořit PDF exporty těchto mandátů v podobě oficiálních dokumentů.
 Nebo doladit responzivitu pro mobilní terminály.
 
+
+
+
+
+
+
 1. The "Influence Map" (Dynamic Graph)
 Intelligence agencies don't just look at names; they look at proximity.
 

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
-import { 
-  Search, Shield, Fingerprint, Building2, 
+import {
+  Search, Shield, Fingerprint, Building2,
   X, Activity, Command, Zap, Cpu, Briefcase, Share2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -39,8 +39,8 @@ const GlobalSearchTerminal = () => {
     queryKey: ['global-search', debouncedQuery],
     queryFn: async () => {
       if (!debouncedQuery || debouncedQuery.length < 3) return [];
-      const response = await axios.get('/api/v1/search/global', { 
-        params: { query: debouncedQuery, vector: 'ALL' } 
+      const response = await axios.get('/api/v1/search/global', {
+        params: { query: debouncedQuery, vector: 'ALL' }
       });
       return response.data;
     },
@@ -50,6 +50,17 @@ const GlobalSearchTerminal = () => {
   const handleClose = () => {
     setSearchTerm('');
     setIsHudActive(false);
+  };
+
+  // KLÍČOVÁ OPRAVA: Směrování podle kategorie
+  const handleNavigate = (res: SearchResultDTO) => {
+    if (res.category === 'PERSON') {
+      navigate(`/personnel/${res.id}`);
+    } else if (res.category === 'INSTITUTION') {
+      navigate(`/institutions/${res.id}`);
+    } else if (res.category === 'OCCUPATION') {
+      navigate(`/occupations/${res.id}`);
+    }
   };
 
   const getCategoryIcon = (category: string) => {
@@ -76,12 +87,12 @@ const GlobalSearchTerminal = () => {
             <p className="text-[10px] text-cyan-500/40 tracking-[0.4em]">CENTRAL_INTELLIGENCE_UPLINK</p>
           </div>
           <div className="w-full relative group max-w-md">
-            <input 
+            <input
               autoFocus
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="IDENTIFY_SUBJECT..."
-              className="relative w-full bg-black border border-cyan-500/40 py-6 px-8 text-xl text-white outline-none uppercase tracking-widest text-center"
+              className="relative w-full bg-black border border-cyan-500/40 py-6 px-8 text-xl text-white outline-none uppercase tracking-widest text-center placeholder:transition-opacity placeholder:duration-300 focus:placeholder:opacity-0"
             />
           </div>
         </div>
@@ -92,7 +103,7 @@ const GlobalSearchTerminal = () => {
         <div className="absolute inset-0 z-50 flex items-center justify-center p-2 md:p-8 animate-in fade-in zoom-in duration-500">
           <div className="absolute inset-0 bg-black/95 backdrop-blur-3xl" />
           <div className="relative w-full max-w-7xl h-[90vh] flex flex-col border border-cyan-500/40 bg-[#050608] shadow-[0_0_100px_rgba(6,182,212,0.1)]">
-            
+
             <div className="flex-1 overflow-y-auto custom-scrollbar relative">
               <table className="w-full text-left border-collapse">
                 <thead className="sticky top-0 bg-[#050608] z-20 border-b border-cyan-500/30">
@@ -105,7 +116,7 @@ const GlobalSearchTerminal = () => {
                 </thead>
                 <tbody className="divide-y divide-cyan-500/10">
                   {results?.map((res) => (
-                    <tr key={res.id} className="group hover:bg-cyan-500/5 transition-all">
+                    <tr key={res.id} className="group hover:bg-cyan-500/5 transition-all cursor-pointer" onClick={() => handleNavigate(res)}>
                       <td className="px-8 py-5 text-cyan-500/30 group-hover:text-cyan-500">{getCategoryIcon(res.category)}</td>
                       <td className="px-8 py-5">
                         <div className="text-lg font-black text-white group-hover:text-cyan-400 transition-colors uppercase italic tracking-tighter">{res.displayName}</div>
@@ -114,9 +125,11 @@ const GlobalSearchTerminal = () => {
                       <td className="px-8 py-5 text-[10px] uppercase tracking-widest text-cyan-500/50">{res.category} // {res.subLabel || 'ROOT'}</td>
                       <td className="px-8 py-5 text-right pr-8">
                         <div className="flex justify-end gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                          <button onClick={() => navigate(`/personnel/${res.id}`)} className="px-3 py-1 border border-cyan-500/30 text-[10px] text-cyan-500 hover:bg-cyan-500 hover:text-black transition-all">DOSSIER</button>
+                          <button onClick={(e) => { e.stopPropagation(); handleNavigate(res); }} className="px-3 py-1 border border-cyan-500/30 text-[10px] text-cyan-500 hover:bg-cyan-500 hover:text-black transition-all uppercase">
+                            Dossier
+                          </button>
                           {res.category === 'PERSON' && (
-                            <button onClick={() => navigate(`/intelligence/${res.id}`)} className="px-3 py-1 border border-blue-500 bg-blue-500/10 text-blue-400 text-[10px] hover:bg-blue-500 hover:text-white transition-all font-black flex items-center gap-2">
+                            <button onClick={(e) => { e.stopPropagation(); navigate(`/intelligence/${res.id}`); }} className="px-3 py-1 border border-blue-500 bg-blue-500/10 text-blue-400 text-[10px] hover:bg-blue-500 hover:text-white transition-all font-black flex items-center gap-2">
                               <Share2 size={10} /> NETWORK_SCAN
                             </button>
                           )}
@@ -132,7 +145,7 @@ const GlobalSearchTerminal = () => {
             <div className="bg-cyan-500/5 border-t border-cyan-500/40 p-6 flex flex-col gap-4">
               <div className="flex items-center gap-6">
                 <Command size={24} className="text-cyan-500 animate-pulse" />
-                <input 
+                <input
                   autoFocus
                   ref={inputRef}
                   value={searchTerm}

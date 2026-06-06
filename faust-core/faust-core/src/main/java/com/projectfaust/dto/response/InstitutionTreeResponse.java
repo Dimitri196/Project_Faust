@@ -16,5 +16,8 @@ public record InstitutionTreeResponse(
         String description,
         boolean isStateOwned,
         boolean active,
-        List<InstitutionTreeResponse> children
+        boolean hasChildren,
+        InstitutionTreeResponse parent,
+        List<InstitutionTreeResponse> children,
+        String logoUrl
 ) {}
