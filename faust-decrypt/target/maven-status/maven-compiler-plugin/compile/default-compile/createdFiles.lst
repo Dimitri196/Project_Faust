@@ -1,0 +1,3 @@
+com\projectfaust\tools\FaustDecrypt$WrongPassphraseException.class
+com\projectfaust\tools\FaustDecrypt.class
+com\projectfaust\tools\FaustDecrypt$NoPayloadException.class

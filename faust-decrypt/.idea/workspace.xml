@@ -1,0 +1,434 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="d6c56767-96bb-4fd3-8d58-710ae4830746" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/../faust-client/src/utils/occupationTree.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/auth/AuthController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/auth/AuthResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/auth/AuthService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/auth/FaustUserDetailsService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/auth/JwtAuthFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/auth/JwtService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/auth/dto/AuthResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/auth/dto/LoginRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/config/HashGen.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/core/ContractIngestService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/core/ContractSourceMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/core/ExternalContract.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/core/ExternalContractController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/core/ExternalContractRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/core/ExternalContractService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/dto/ExternalContractResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/dto/HlidacContractDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/dto/TedNoticeDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/hlidacstatu/ContractConsumerService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/hlidacstatu/ExternalContractFetchController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/hlidacstatu/ExternalContractFetchService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/hlidacstatu/HlidacStatuContractMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/realestate/core/RealEstateConsumerService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/realestate/core/RealEstateController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/realestate/core/RealEstateIngestService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/realestate/core/RealEstateMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/realestate/core/RealEstateOwnership.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/realestate/core/RealEstateOwnershipRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/realestate/core/RealEstateSourceMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/realestate/cuzk/CuzkRealEstateFetchService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/realestate/cuzk/CuzkRealEstateMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/realestate/dto/RealEstateOwnershipDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/realestate/dto/RealEstateResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/ted/TedContractFetchService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/ted/TedContractMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/theses/AcademicPublicationResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/theses/AcademicThesisRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/theses/SemanticScholarAuthorDto.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/theses/ThesisFetchService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/InstitutionIdentifier.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/InstitutionIdentifierMapper.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/InstitutionIdentifierRepository.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/InstitutionIdentifierService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/dto/InstitutionIdentifierRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/dto/InstitutionIdentifierResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/intelligence/dto/ConnectionPathResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/intelligence/dto/InfluenceMapResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/intelligence/dto/IntelligenceReportResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/location/BatchGeocodingController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/location/BatchGeocodingService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/location/dto/UpdateParentRequest.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/PersonFilter.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/PersonSpecifications.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/dto/PersonNameResponse.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/search/SearchController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/CadasterSourceSystem.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/IdentifierType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/LocationSourceType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/PropertyType.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/SourceSystem.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/UserRole.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/UserStatus.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/exception/ClearanceInsufficientException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/steganography/IntelligenceExportService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/steganography/IntelligencePayload.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/steganography/SteganographyController.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/steganography/SteganographyException.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/steganography/SteganographyService.java" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/.gitignore" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/encodings.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/.idea/vcs.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/pom.xml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/main/java/com/projectfaust/tools/FaustDecrypt.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/App.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/api/axios.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/api/axios.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/components/ai/AiReportSidebar.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/components/ai/IntelligenceTerminal.jsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/components/institutions/InstitutionBreadcrumbs.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/components/institutions/InstitutionBreadcrumbs.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/components/institutions/InstitutionFlow.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/components/institutions/InstitutionFlow.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/components/institutions/InstitutionNode.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/components/institutions/InstitutionTree.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/components/institutions/InstitutionTree.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/components/institutions/institutionService.ts" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/components/occupations/HierarchyFlow.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/components/occupations/HierarchyFlow.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/components/occupations/OccupationNodeTactical.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/components/occupations/OccupationNodeTactical.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/components/occupations/OccupationNodeVisual.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/context/AuthContext.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/context/AuthContext.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/context/ProtectedRoute.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/context/ProtectedRoute.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/main.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/main.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/pages/AgentProfilePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/pages/AgentProfilePage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/pages/ArchivePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/pages/ArchivePage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/pages/GlobalSearchTerminal.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/pages/GlobalSearchTerminal.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/pages/HierarchyPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/pages/HierarchyPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/pages/InstitutionDetail.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/pages/InstitutionDetail.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/pages/InstitutionsPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/pages/InstitutionsPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/pages/LocationDetailPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/pages/LocationDetailPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/pages/LocationPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/pages/LocationPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/pages/LoginPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/pages/LoginPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/pages/OccupationDetail.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/pages/OccupationDetail.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/pages/OccupationPage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/pages/OccupationPage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/pages/PeoplePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/pages/PeoplePage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/pages/PersonDossier.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/pages/PersonDossier.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/pages/SubjectRegistry.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/pages/SubjectRegistry.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/pages/UserProfilePage.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/pages/UserProfilePage.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/src/types/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/src/types/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-client/vite.config.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-client/vite.config.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/.idea/compiler.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/.idea/compiler.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/.idea/modules.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/.idea/sqldialects.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/.idea/sqldialects.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ProjectFaustApplication.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ProjectFaustApplication.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/config/CorsConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/config/CorsConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/config/SecurityConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/config/SecurityConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/config/SwaggerConfig.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/config/SwaggerConfig.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/controller/AiController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/intelligence/AiController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/controller/AppointmentController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/appointment/AppointmentController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/controller/BankAccountController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/financial/BankAccountController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/controller/ContractIngestController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/controller/InstitutionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/InstitutionController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/controller/InstitutionFinancialRelationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/financial/InstitutionFinancialRelationController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/controller/InstitutionalEvolutionController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/InstitutionalEvolutionController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/controller/IntelligenceController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/intelligence/IntelligenceController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/controller/LocationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/location/LocationController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/controller/OccupationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/occupation/OccupationController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/controller/PersonContactController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/PersonContactController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/controller/PersonController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/PersonController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/controller/PersonFinancialRelationController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/financial/PersonFinancialRelationController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/controller/ProfileController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/user/ProfileController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/controller/SearchController.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/controller/ThesisIngestController.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/theses/ThesisIngestController.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/LocationFilter.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/external/ContractDto.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/external/LocationSeedDto.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/location/dto/LocationSeedDto.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/request/AcademicThesisScraperRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/request/AcademicThesisScraperRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/request/AdditionalNameRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/dto/AdditionalNameRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/request/AgentOnboardingRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/user/dto/AgentOnboardingRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/request/AppointmentRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/appointment/dto/AppointmentRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/request/BankAccountRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/financial/dto/BankAccountRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/request/ContactOperationsRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/dto/ContactOperationsRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/request/InstitutionFinancialRelationRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/financial/dto/InstitutionFinancialRelationRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/request/InstitutionRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/dto/InstitutionRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/request/InstitutionalEvolutionRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/dto/InstitutionalEvolutionRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/request/LocationRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/location/dto/LocationRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/request/OccupationRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/occupation/dto/OccupationRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/request/PersonConnectionRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/dto/PersonConnectionRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/request/PersonFinancialRelationRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/financial/dto/PersonFinancialRelationRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/request/PersonRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/dto/PersonRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/request/UpdateProfileRequest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/user/dto/UpdateProfileRequest.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/AcademicThesisResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/AcademicThesisResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/AppointmentResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/appointment/dto/AppointmentResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/BankAccountResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/financial/dto/BankAccountResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/ContactOperationsResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/dto/ContactOperationsResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/FinancialOperationsResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/financial/dto/FinancialOperationsResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/GlobalSearchResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/search/GlobalSearchResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/InfluenceMapResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/InstitutionAscendedResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/dto/InstitutionAscendedResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/InstitutionFinancialRelationResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/financial/dto/InstitutionFinancialRelationResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/InstitutionResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/dto/InstitutionResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/InstitutionTreeResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/dto/InstitutionTreeResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/InstitutionalEvolutionResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/dto/InstitutionalEvolutionResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/LocationResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/location/dto/LocationResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/OccupationAscendedResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/occupation/dto/OccupationAscendedResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/OccupationResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/occupation/dto/OccupationResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/OccupationTreeResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/occupation/dto/OccupationTreeResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/PersonConnectionResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/dto/PersonConnectionResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/PersonFinancialRelationResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/financial/dto/PersonFinancialRelationResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/PersonResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/dto/PersonResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/dto/response/ProfileResponse.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/user/dto/ProfileResponse.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/AcademicThesis.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/theses/AcademicThesis.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/Appointment.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/appointment/Appointment.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/BankAccount.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/financial/BankAccount.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/ExternalAsset.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/ExternalAsset.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/ExternalContract.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/ExternalIncomeReport.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/ExternalIncomeReport.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/Institution.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/Institution.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/InstitutionAccountRelation.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/financial/InstitutionAccountRelation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/InstitutionalEvolution.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/InstitutionalEvolution.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/IntelligenceAccessLog.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/intelligence/IntelligenceAccessLog.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/IntelligenceReport.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/intelligence/IntelligenceReport.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/Location.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/location/Location.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/Occupation.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/occupation/Occupation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/Person.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/Person.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/PersonAccountRelation.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/financial/PersonAccountRelation.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/PersonConnection.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/PersonConnection.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/PersonContact.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/PersonContact.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/PersonName.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/PersonName.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/User.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/user/User.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/enums/AssetType.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/AssetType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/enums/ClearanceLevel.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/ClearanceLevel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/enums/ConnectionType.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/ConnectionType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/enums/ContactType.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/ContactType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/enums/EducationLevel.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/EducationLevel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/enums/Gender.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/Gender.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/enums/HierarchicalLevel.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/HierarchicalLevel.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/enums/IncomeSourceType.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/IncomeSourceType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/enums/InstitutionAccountRole.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/InstitutionAccountRole.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/enums/InstitutionType.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/InstitutionType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/enums/InstitutionalEvolutionType.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/InstitutionalEvolutionType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/enums/LocationType.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/LocationType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/enums/NameType.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/NameType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/enums/OccupationCategory.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/OccupationCategory.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/enums/PersonAccountRole.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/PersonAccountRole.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/enums/ThesisType.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/ThesisType.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/enums/VerificationStatus.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/enums/VerificationStatus.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/entity/filters/LocationFilter.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/location/LocationFilter.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/mapper/AppointmentMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/appointment/AppointmentMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/mapper/InstitutionMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/InstitutionMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/mapper/InstitutionalEvolutionMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/InstitutionalEvolutionMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/mapper/IntelligenceMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/intelligence/IntelligenceMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/mapper/LocationMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/location/LocationMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/mapper/OccupationMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/occupation/OccupationMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/mapper/PersonConnectionMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/PersonConnectionMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/mapper/PersonContactMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/PersonContactMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/mapper/PersonMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/PersonMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/mapper/UserMapper.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/user/UserMapper.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/mapper/handler/GlobalExceptionHandler.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/exception/GlobalExceptionHandler.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/repository/AcademicThesisRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/repository/AppointmentRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/appointment/AppointmentRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/repository/BankAccountRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/financial/BankAccountRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/repository/ExternalContractRepository.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/repository/InstitutionAccountRelationRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/financial/InstitutionAccountRelationRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/repository/InstitutionRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/InstitutionRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/repository/InstitutionalEvolutionRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/InstitutionalEvolutionRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/repository/IntelligenceReportRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/intelligence/IntelligenceReportRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/repository/LocationRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/location/LocationRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/repository/OccupationRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/occupation/OccupationRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/repository/PersonAccountRelationRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/financial/PersonAccountRelationRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/repository/PersonConnectionRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/PersonConnectionRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/repository/PersonContactRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/PersonContactRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/repository/PersonNameRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/PersonNameRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/repository/PersonRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/PersonRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/repository/UserRepository.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/user/UserRepository.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/service/AiAnalystService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/intelligence/AiAnalystService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/service/AiService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/intelligence/AiService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/service/AppointmentService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/appointment/AppointmentService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/service/ContractConsumerService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/service/ContractIngestService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/service/InstitutionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/InstitutionService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/service/InstitutionalEvolutionService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/InstitutionalEvolutionService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/service/IntelligenceService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/intelligence/IntelligenceService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/service/LocationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/location/LocationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/service/OccupationService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/occupation/OccupationService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/service/PersonContactService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/PersonContactService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/service/PersonNameService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/PersonNameService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/service/PersonService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/person/PersonService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/service/SearchService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/search/SearchService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/service/ThesisConsumerService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/theses/ThesisConsumerService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/service/ThesisIngestService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/ingest/theses/ThesisIngestService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/service/UserService.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/user/UserService.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/specification/InstitutionSpecifications.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/institution/InstitutionSpecifications.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/specification/LocationSpecifications.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/location/LocationSpecifications.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/validator/Hierarchical.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/validator/Hierarchical.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/validator/HierarchyValidator.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/java/com/projectfaust/shared/validator/HierarchyValidator.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/resources/application.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/resources/application.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/main/resources/db/changelog/db.changelog-master.yaml" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/main/resources/db/changelog/db.changelog-master.yaml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../faust-core/faust-core/src/test/java/com/projectfaust/HierarchyValidatorTest.java" beforeDir="false" afterPath="$PROJECT_DIR$/../faust-core/faust-core/src/test/java/com/projectfaust/HierarchyValidatorTest.java" afterDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="EmbeddingIndexingInfo">
+    <option name="cachedIndexableFilesCount" value="10" />
+    <option name="fileBasedEmbeddingIndicesEnabled" value="true" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;Dimitri196&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/Dimitri196/Project_Faust.git&quot;,
+    &quot;accountId&quot;: &quot;59e435e9-d324-49b6-8aed-ecd49b2b4711&quot;
+  }
+}</component>
+  <component name="McpProjectServerCommands">
+    <commands />
+    <urls />
+  </component>
+  <component name="NextEditCompletionFeaturesState">
+    <decayedCancelled>
+      <entry key="MS100" value="1.0000002815705922" />
+      <entry key="MS500" value="1.0489685741843338" />
+      <entry key="S2" value="1.4704130538466083" />
+      <entry key="S5" value="1.7397029226310916" />
+      <entry key="S10" value="1.8753756391623868" />
+      <entry key="S30" value="2.445891865176492" />
+      <entry key="S60" value="3.187096720227863" />
+      <entry key="M2" value="3.891743818853417" />
+      <entry key="M5" value="4.495468902944124" />
+      <entry key="M10" value="4.736224348764542" />
+      <entry key="M15" value="4.8214849699759625" />
+      <entry key="M30" value="4.909382428668726" />
+      <entry key="H1" value="4.9543458927258754" />
+      <entry key="H2" value="4.977085943364287" />
+      <entry key="H4" value="4.988521136278875" />
+      <entry key="D1" value="4.998083816139395" />
+      <entry key="W1" value="4.999726184907551" />
+    </decayedCancelled>
+    <decayedSelected>
+      <entry key="MS100" value="0.0" />
+      <entry key="MS500" value="0.0" />
+      <entry key="S2" value="0.0" />
+      <entry key="S5" value="0.0" />
+      <entry key="S10" value="0.0" />
+      <entry key="S30" value="0.0" />
+      <entry key="S60" value="0.0" />
+      <entry key="M2" value="0.0" />
+      <entry key="M5" value="0.0" />
+      <entry key="M10" value="0.0" />
+      <entry key="M15" value="0.0" />
+      <entry key="M30" value="0.0" />
+      <entry key="H1" value="0.0" />
+      <entry key="H2" value="0.0" />
+      <entry key="H4" value="0.0" />
+      <entry key="D1" value="0.0" />
+      <entry key="W1" value="0.0" />
+    </decayedSelected>
+    <decayedShown>
+      <entry key="MS100" value="0.9460579149604412" />
+      <entry key="MS500" value="1.03746659477311" />
+      <entry key="S2" value="1.466504459212693" />
+      <entry key="S5" value="1.7378770673053685" />
+      <entry key="S10" value="1.8743984507165075" />
+      <entry key="S30" value="2.445489947193172" />
+      <entry key="S60" value="3.186847030747122" />
+      <entry key="M2" value="3.891595714290142" />
+      <entry key="M5" value="4.4954016645608865" />
+      <entry key="M10" value="4.736189132399193" />
+      <entry key="M15" value="4.821461115093483" />
+      <entry key="M30" value="4.909370306680885" />
+      <entry key="H1" value="4.954339781960912" />
+      <entry key="H2" value="4.977082875394625" />
+      <entry key="H4" value="4.988519599129031" />
+      <entry key="D1" value="4.998083559506615" />
+      <entry key="W1" value="4.999726148234902" />
+    </decayedShown>
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 8,
+  &quot;fromUser&quot;: false
+}</component>
+  <component name="ProjectId" id="3J3HFwFkpA3C69csbfyLUgqQiRm" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Maven.faust-decrypt [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.faust-decrypt [compile].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.faust-decrypt [install].executor&quot;: &quot;Run&quot;,
+    &quot;ModuleVcsDetector.initialDetectionPerformed&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.MCP Project settings loaded&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.typescript.service.memoryLimit.init&quot;: &quot;true&quot;,
+    &quot;codeWithMe.voiceChat.enabledByDefault&quot;: &quot;false&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feature/contract-intel-and-platform-fixes&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.jshint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.jshint&quot;: &quot;&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;onboarding.tips.debug.path&quot;: &quot;C:/Users/bodze/Desktop/Project_FAUST/faust-decrypt/src/main/java/org/example/Main.java&quot;
+  }
+}</component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-30f59d01ecdd-a203e0a19954-intellij.indexing.shared.core-IU-262.10315.125" />
+        <option value="bundled-js-predefined-d6986cc7102b-4abd2a77f808-JavaScript-IU-262.10315.125" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="d6c56767-96bb-4fd3-8d58-710ae4830746" name="Changes" comment="" />
+      <created>1788882731817</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1788882731817</updated>
+      <workItem from="1788882732848" duration="388000" />
+      <workItem from="1789018181512" duration="2903000" />
+      <workItem from="1789040392491" duration="61000" />
+      <workItem from="1789104560856" duration="1000" />
+      <workItem from="1789363606678" duration="11000" />
+      <workItem from="1789363699159" duration="3000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="java-line">
+          <url>file://$PROJECT_DIR$/src/main/java/com/projectfaust/Main.java</url>
+          <line>13</line>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
+  </component>
+</project>

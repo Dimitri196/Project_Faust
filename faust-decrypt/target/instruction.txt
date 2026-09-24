@@ -1,0 +1,1 @@
+java -jar faust-decrypt.jar "C:\Users\bodze\Downloads\export_8f96f278.png" "2002"
