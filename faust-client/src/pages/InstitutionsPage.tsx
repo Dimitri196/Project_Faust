@@ -3,9 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { useLocation } from 'react-router-dom';
 import api from '../api/axios';
 import {
-  Network, Database, Info, Search, Activity,
-  ShieldAlert, Cpu, X, ListTree, LayoutGrid,
-  Maximize2, Zap, SearchCode
+  Network, Search, Cpu, X, ListTree, Zap, SearchCode
 } from 'lucide-react';
 import type { InstitutionTreeResponse } from '../types';
 import InstitutionTree from '../components/institutions/InstitutionTree';
@@ -17,25 +15,23 @@ const InstitutionsPage = () => {
   const [viewMode, setViewMode] = useState<'tree' | 'nexus'>('tree');
   const [focusNodeId, setFocusNodeId] = useState<string | null>(null);
 
-  // 1. ZÁKLADNÍ KOŘENY (Pouze top-level úřady pro šetření výkonu)
+  // 1. ROOT NODES (top-level institutions only, for initial render performance)
   const { data: tree, isLoading: isTreeLoading } = useQuery<InstitutionTreeResponse[]>({
     queryKey: ['institution-tree'],
     queryFn: async () => {
-      // Volá námi upravený endpoint pro kořeny (Roots)
       const res = await api.get('/institutions/tree');
       return res.data;
     }
   });
 
-  // 2. FOCUS DATA (Načítá hluboký podstrom pro Nexus vizualizaci)
+  // 2. FOCUS DATA — deep sub-tree for Nexus visualization.
+  // CHANGED: removed the `if (!focusNodeId) return null` branch. The query
+  // is already gated by `enabled: !!focusNodeId`, so queryFn never runs
+  // with a null focusNodeId — the early return was dead code that also
+  // produced a type mismatch (null vs InstitutionTreeResponse).
   const { data: subTreeData, isLoading: isSubTreeLoading } = useQuery<InstitutionTreeResponse>({
     queryKey: ['institution-subtree', focusNodeId],
-    queryFn: async () => {
-      if (!focusNodeId) return null;
-      // Volá rekurzivní endpoint (toTreeResponse v Mapperu)
-      const res = await api.get(`/institutions/${focusNodeId}/sub-tree`);
-      return res.data;
-    },
+    queryFn: async () => (await api.get(`/institutions/${focusNodeId}/sub-tree`)).data,
     enabled: !!focusNodeId,
     staleTime: 1000 * 60 * 5
   });
@@ -46,8 +42,8 @@ const InstitutionsPage = () => {
     if (state?.view) setViewMode(state.view);
   }, [location]);
 
-  // Statistiky počítáme pouze z viditelných/načtených kořenů 
-  // nebo můžeme přidat samostatný endpoint na globální statistiky
+  // Stats computed from currently-loaded root nodes only. A dedicated
+  // global stats endpoint would be needed for a true system-wide count.
   const stats = useMemo(() => {
     if (!tree) return { total: 0, intelligence: 0 };
     let total = 0;
@@ -72,18 +68,16 @@ const InstitutionsPage = () => {
   const filteredTree = useMemo(() => {
     if (!searchQuery) return tree;
     const lowerQuery = searchQuery.toLowerCase();
-    // V Lazy Loadingu hledáme primárně v kořenech. 
-    // Pro globální full-text hledání by byl lepší dedikovaný endpoint /search.
+    // Lazy-loaded tree only searches root nodes currently in memory.
+    // A dedicated /search endpoint would be needed for true global full-text search.
     return tree?.filter(node =>
       node.name.toLowerCase().includes(lowerQuery) ||
       node.publicId.toLowerCase().includes(lowerQuery)
     );
   }, [tree, searchQuery]);
 
-  // Sem nahoru do InstitutionsPage.tsx (mimo hlavní funkci komponenty) přidej:
   const EMPTY_TREE_ARRAY: InstitutionTreeResponse[] = [];
 
-  // ... uvnitř komponenty InstitutionsPage:
   const memoizedTreeData = useMemo(() => {
     return tree || EMPTY_TREE_ARRAY;
   }, [tree]);
@@ -151,7 +145,7 @@ const InstitutionsPage = () => {
           </div>
         ) : (
           <>
-            {/* REGISTER VIEW - Nyní podporuje Lazy Loading */}
+            {/* REGISTER VIEW — supports lazy loading */}
             <div className={`h-full overflow-y-auto p-8 bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:24px_24px] ${viewMode !== 'tree' ? 'hidden' : ''}`}>
               <div className="max-w-4xl mx-auto space-y-3 pb-24">
                 {filteredTree?.length === 0 ? (
@@ -165,7 +159,7 @@ const InstitutionsPage = () => {
                       key={rootNode.publicId}
                       node={rootNode}
                       depth={0}
-                      forceOpen={searchQuery.length > 2} // Automaticky otevírá při psaní
+                      forceOpen={searchQuery.length > 2}
                       onFocusClick={(id) => setFocusNodeId(id)}
                     />
                   ))
@@ -173,14 +167,14 @@ const InstitutionsPage = () => {
               </div>
             </div>
 
-            {/* FULL NEXUS VIEW (Vysoká zátěž - zobrazuje jen načtené kořeny) */}
+            {/* FULL NEXUS VIEW — high load, shows only loaded roots */}
             {viewMode === 'nexus' && (
               <div className="h-full w-full bg-black">
                 <InstitutionFlow data={memoizedTreeData} />
               </div>
             )}
 
-            {/* FOCUS MODAL - Hluboká strukturální analýza */}
+            {/* FOCUS MODAL — deep structural analysis */}
             {focusNodeId && (
               <div className="absolute inset-0 z-50 bg-slate-950/90 backdrop-blur-xl animate-in fade-in zoom-in-95 duration-300 flex flex-col">
                 <div className="p-4 border-b border-white/10 flex justify-between items-center bg-slate-900/80">

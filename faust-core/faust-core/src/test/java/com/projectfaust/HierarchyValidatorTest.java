@@ -2,8 +2,8 @@ package com.projectfaust;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-import com.projectfaust.entity.Institution;
-import com.projectfaust.validator.HierarchyValidator;
+import com.projectfaust.institution.Institution;
+import com.projectfaust.shared.validator.HierarchyValidator;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

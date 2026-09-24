@@ -6,7 +6,7 @@ import api from '../api/axios';
 import {
   ChevronLeft, Shield, Edit3, Mail, Phone, RefreshCw,
   Car, ShieldCheck, Landmark, TrendingUp, Clock, X, MapPin,
-  User, UserRound, Briefcase, GraduationCap, Award,
+  Briefcase, GraduationCap, Award,
   BrainCircuit, Zap, Terminal, Network, Fingerprint,
   MessageSquare, Radio, ShieldAlert, Key, HelpCircle
 } from 'lucide-react';
@@ -16,24 +16,38 @@ import type { PersonResponse, AppointmentResponse, ContactType } from '../types'
 // --- SUBSIDIARY: INTELLIGENCE OVERLAY (MODAL) ---
 const IntelligenceOverlay: React.FC<{ personId: string; isOpen: boolean; onClose: () => void }> = ({ personId, isOpen, onClose }) => {
   const [loading, setLoading] = useState(false);
-  const [report, setReport] = useState<any | null>(null);
+  const [report, setReport]   = useState<string | null>(null);
+  const [error, setError]     = useState<string | null>(null);
 
   const fetchReport = async (forceRescan = false) => {
     setLoading(true);
+    setError(null);
+    if (forceRescan) setReport(null);
     try {
-      const endpoint = forceRescan ? `/intelligence/analyze/${personId}?rescan=true` : `/intelligence/analyze/${personId}`;
-      const res = await api.get(endpoint);
+      const endpoint = forceRescan
+        ? `/intelligence/analyze/${personId}?rescan=true`
+        : `/intelligence/analyze/${personId}`;
+      const res = await api.get<string>(endpoint, { responseType: 'text' });
       setReport(res.data);
-    } catch (err) {
-      setReport({ analysis: "## CRITICAL ERROR\nSpojení přerušeno." });
+    } catch (err: any) {
+      const status = err?.response?.status;
+      if (status === 503) {
+        setError('AI_PROVIDER_OVERLOADED: All AI providers are experiencing high demand. Please retry in a few minutes.');
+      } else if (status === 403) {
+        setError('ACCESS_DENIED: Insufficient clearance for intelligence analysis.');
+      } else if (status === 404) {
+        setError('SUBJECT_NOT_FOUND: No person record matched this identifier.');
+      } else {
+        setError(`UPLINK_FAILURE: Analysis could not be completed. Status: ${status ?? 'UNKNOWN'}`);
+      }
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
-    if (isOpen && !report) fetchReport();
-  }, [isOpen, report, personId]);
+    if (isOpen && !report && !error) fetchReport();
+  }, [isOpen]);
 
   if (!isOpen) return null;
 
@@ -41,19 +55,59 @@ const IntelligenceOverlay: React.FC<{ personId: string; isOpen: boolean; onClose
     <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 animate-in fade-in duration-200">
       <div className="absolute inset-0 bg-[#020617]/95 backdrop-blur-md" onClick={onClose} />
       <div className="relative w-full max-w-3xl max-h-[85vh] bg-[#0a0f1e] border border-emerald-500/30 rounded-lg flex flex-col overflow-hidden shadow-2xl">
+
+        {/* HEADER */}
         <div className="flex items-center justify-between px-4 py-2 border-b border-white/5 bg-slate-950/50">
-          <span className="text-[9px] font-mono font-bold text-emerald-500 uppercase tracking-widest">Intelligence_Briefing // Faust</span>
-          <button onClick={onClose} className="p-1 hover:text-white text-slate-500 transition-colors"><X size={16} /></button>
+          <span className="text-[9px] font-mono font-bold text-emerald-500 uppercase tracking-widest">
+            Intelligence_Briefing // Faust
+          </span>
+          <div className="flex items-center gap-2">
+            {/* Rescan button — always visible when not loading */}
+            {!loading && (
+              <button
+                onClick={() => fetchReport(true)}
+                className="flex items-center gap-1 px-2 py-0.5 text-[8px] font-mono font-bold uppercase tracking-widest text-emerald-400 border border-emerald-500/20 hover:bg-emerald-500/10 transition-colors"
+                title="Force regenerate — bypasses 7-day cache"
+              >
+                <RefreshCw size={9} /> Rescan
+              </button>
+            )}
+            <button onClick={onClose} className="p-1 hover:text-white text-slate-500 transition-colors">
+              <X size={16} />
+            </button>
+          </div>
         </div>
+
+        {/* CONTENT */}
         <div className="flex-1 overflow-y-auto p-5 custom-scrollbar text-sm">
           {loading ? (
             <div className="h-40 flex flex-col items-center justify-center gap-2">
               <RefreshCw className="text-emerald-500 animate-spin" size={24} />
-              <span className="text-[9px] font-mono text-emerald-500 animate-pulse uppercase tracking-widest">Cognitive_Analysis...</span>
+              <span className="text-[9px] font-mono text-emerald-500 animate-pulse uppercase tracking-widest">
+                Cognitive_Analysis...
+              </span>
+            </div>
+          ) : error ? (
+            <div className="flex flex-col items-center justify-center gap-4 py-12">
+              <ShieldAlert size={32} className="text-rose-500/60" />
+              <div className="text-center space-y-2">
+                <div className="text-[9px] font-mono font-bold text-rose-400 uppercase tracking-widest">
+                  Analysis_Failed
+                </div>
+                <div className="text-[10px] font-mono text-slate-500 max-w-sm text-center leading-relaxed">
+                  {error}
+                </div>
+              </div>
+              <button
+                onClick={() => fetchReport(false)}
+                className="flex items-center gap-2 px-4 py-2 text-[9px] font-mono font-bold uppercase tracking-widest text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/10 transition-colors"
+              >
+                <RefreshCw size={10} /> Retry_Connection
+              </button>
             </div>
           ) : (
             <div className="prose prose-invert prose-emerald max-w-none text-slate-300">
-              <ReactMarkdown>{report?.analysis || report || ""}</ReactMarkdown>
+              <ReactMarkdown>{report || ""}</ReactMarkdown>
             </div>
           )}
         </div>
@@ -85,18 +139,23 @@ const PersonDossier: React.FC = () => {
   const [isEditing, setIsEditing] = useState(false);
   const [isIntelOpen, setIsIntelOpen] = useState(false);
 
-  const { data: person, isLoading: isPersonLoading } = useQuery<PersonResponse>({
+  // CHANGED: added isError/isPersonError handling, matching the pattern
+  // used in OccupationDetail/InstitutionDetail. Previously a 403 or 404
+  // here silently rendered every field as undefined instead of a clear
+  // error state.
+  const { data: person, isLoading: isPersonLoading, isError: isPersonError } = useQuery<PersonResponse>({
     queryKey: ['person', id],
     queryFn: async () => {
       const res = await api.get(`/persons/${id}`);
       return res.data;
-    }
+    },
+    enabled: !!id,
   });
 
   const { data: history } = useQuery<AppointmentResponse[]>({
     queryKey: ['person-history', id],
     queryFn: async () => {
-      const res = await api.get(`/appointments/person/${id}`);
+      const res = await api.get(`/appointments/person/${id}/history`);
       return res.data;
     },
     enabled: !!id
@@ -105,8 +164,8 @@ const PersonDossier: React.FC = () => {
   const influenceScore = useMemo(() => {
     if (!person) return 0;
     let score = 35;
-    const eduMap: any = { 'DOCTORATE': 25, 'MASTER': 15, 'BACHELOR': 10 };
-    const clrMap: any = { 'LEVEL_5_TOP_SECRET': 40, 'LEVEL_4_SECRET': 25, 'LEVEL_3_CONFIDENTIAL': 15 };
+    const eduMap: Record<string, number> = { 'DOCTORATE': 25, 'MASTER': 15, 'BACHELOR': 10 };
+    const clrMap: Record<string, number> = { 'LEVEL_5_TOP_SECRET': 40, 'LEVEL_4_SECRET': 25, 'LEVEL_3_CONFIDENTIAL': 15 };
     score += (eduMap[person.educationLevel] || 0);
     score += (clrMap[person.clearanceLevel] || 0);
     return Math.min(score, 99);
@@ -116,6 +175,13 @@ const PersonDossier: React.FC = () => {
     style: 'currency', currency: 'CZK', maximumFractionDigits: 0
   }).format(val);
 
+  // NOTE: this aggregates lifetime earnings entirely client-side from raw
+  // appointment data. Flagging for the broader refactor: for a FININT
+  // platform, this kind of financial aggregate is the sort of calculation
+  // that benefits from being computed and verified server-side (single
+  // source of truth, auditable), rather than reimplemented in the
+  // browser — worth a dedicated backend endpoint/field if this number is
+  // ever relied on for actual analysis rather than a rough display figure.
   const lifetimeEarnings = useMemo(() => {
     if (!history || !person) return 0;
     return history.reduce((total, apt) => {
@@ -128,6 +194,19 @@ const PersonDossier: React.FC = () => {
 
   if (isPersonLoading) return <LoadingDossier />;
 
+  // NEW: error state, matching OccupationDetail/InstitutionDetail pattern.
+  if (isPersonError || !person) {
+    return (
+      <div className="h-full bg-[#020617] flex flex-col items-center justify-center font-mono p-10 text-center text-white gap-6">
+        <ShieldAlert size={48} className="text-rose-500/40" />
+        <div className="text-xs uppercase tracking-[0.4em] font-black italic text-rose-400">DOSSIER_RECOVERY_FAILED</div>
+        <button onClick={() => navigate(-1)} className="text-[10px] text-emerald-500 border border-emerald-500/20 px-6 py-3 hover:bg-emerald-500/10 uppercase tracking-widest transition-all italic font-black">
+          Return_to_Directory
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="h-full bg-[#020617] text-slate-200 flex flex-col font-sans selection:bg-emerald-500/30 overflow-hidden">
 
@@ -139,7 +218,7 @@ const PersonDossier: React.FC = () => {
             <span className={isEditing ? 'text-amber-500 font-bold' : 'text-slate-400'}>{isEditing ? 'Override_Mode' : 'Intelligence_Dossier'}</span>
           </div>
           <span className="text-slate-800">|</span>
-          <span className="text-slate-500">Node: {person?.publicId.split('-')[0]}</span>
+          <span className="text-slate-500">Node: {person.publicId.split('-')[0]}</span>
           <div className="flex items-center gap-1 text-emerald-400">
             <Zap size={10} /> <span className="font-bold">Score: {influenceScore}%</span>
           </div>
@@ -170,14 +249,19 @@ const PersonDossier: React.FC = () => {
 
               <div className="flex flex-wrap items-center gap-4">
                 <div>
-                  <div className="text-emerald-500/50 font-mono text-[9px] tracking-widest uppercase leading-none mb-0.5">{person?.titleBefore}</div>
+                  <div className="text-emerald-500/50 font-mono text-[9px] tracking-widest uppercase leading-none mb-0.5">{person.titleBefore}</div>
                   <h1 className="text-3xl font-black text-white tracking-tighter uppercase leading-none">
-                    {person?.firstName} <span className="text-emerald-500">{person?.lastName}</span>
+                    {person.firstName} <span className="text-emerald-500">{person.lastName}</span>
                   </h1>
                 </div>
 
                 <div className="flex flex-wrap gap-1.5 md:border-l border-slate-800 md:pl-4">
-                  {person?.nameHistory?.filter(n => !n.isPrimary).map((name, idx) => (
+                  {/* CHANGED: n.isPrimary -> n.primary. PersonNameDto.primary
+                      (renamed from isPrimary earlier this session). The old
+                      field name was always undefined, so !n.isPrimary was
+                      always true and this filter showed every name
+                      (including the primary one) as if it were an alias. */}
+                  {person.nameHistory?.filter(n => !n.primary).map((name, idx) => (
                     <div key={idx} className="group relative bg-slate-900/40 border border-slate-800 px-2 py-0.5 rounded flex items-center gap-2">
                       <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tight">
                         {name.firstName} {name.lastName}
@@ -197,7 +281,7 @@ const PersonDossier: React.FC = () => {
                     </div>
                   ))}
 
-                  {(!person?.nameHistory || person.nameHistory.filter(n => !n.isPrimary).length === 0) && (
+                  {(!person.nameHistory || person.nameHistory.filter(n => !n.primary).length === 0) && (
                     <span className="text-[8px] font-mono text-slate-700 italic uppercase">
                       No_Aliases_Recorded
                     </span>
@@ -219,51 +303,65 @@ const PersonDossier: React.FC = () => {
             {/* LEFT SIDE: BIOMETRICS & TELEMETRY FOOTPRINT */}
             <div className="lg:col-span-3 space-y-4">
               <section className="bg-slate-900/30 border border-slate-800/60 rounded p-2.5 shadow-xl backdrop-blur-md">
-                <div className="aspect-[3/4] bg-black rounded border border-slate-800 overflow-hidden mb-3 grayscale group hover:grayscale-0 transition-all duration-500">
-                  <img src={person?.photoUrl || undefined} className="w-full h-full object-cover opacity-80" alt="Subject metadata frame" />
+                <div className="aspect-[3/4] bg-black rounded border border-slate-800 overflow-hidden mb-3 grayscale group hover:grayscale-0 transition-all duration-500 flex items-center justify-center">
+                  {/* CHANGED: added a fallback when photoUrl is missing.
+                      Previously <img src={undefined}> rendered a broken-
+                      image glyph for every person without a photo. */}
+                  {person.photoUrl ? (
+                    <img src={person.photoUrl} className="w-full h-full object-cover opacity-80" alt="Subject metadata frame" />
+                  ) : (
+                    <Fingerprint size={48} className="text-slate-800" />
+                  )}
                 </div>
 
                 <div className="space-y-2">
-                  <DataPoint label="Vital Status" value={person?.deathDate ? 'TERMINATED' : 'OPERATIONAL'} color={person?.deathDate ? 'text-rose-600' : 'text-emerald-500'} />
+                  <DataPoint label="Vital Status" value={person.deathDate ? 'TERMINATED' : 'OPERATIONAL'} color={person.deathDate ? 'text-rose-600' : 'text-emerald-500'} />
 
                   {/* AFFILIATION BOX */}
                   <div className="bg-black/60 p-2 rounded border border-emerald-500/20">
                     <div className="text-[7px] text-emerald-500/40 font-mono font-bold uppercase mb-1 tracking-widest flex items-center gap-1">
                       <div className="w-1 h-1 bg-emerald-500 animate-pulse" /> Affiliation_Node
                     </div>
-                    <p className="text-[10px] text-emerald-400 font-bold uppercase pl-2 border-l border-emerald-500/30">{person?.politicalAffiliation || 'NOT_ASSIGNED'}</p>
+                    <p className="text-[10px] text-emerald-400 font-bold uppercase pl-2 border-l border-emerald-500/30">{person.politicalAffiliation || 'NOT_ASSIGNED'}</p>
                     <div className="mt-1.5 pt-1 border-t border-white/5 flex justify-between text-[6px] text-slate-600 font-mono">
                       <span>VERIFIED_LINK</span>
-                      <span>ID: {person?.publicId?.split('-')[1] || 'UNK'}</span>
+                      <span>ID: {person.publicId?.split('-')[1] || 'UNK'}</span>
                     </div>
                   </div>
 
                   {/* BIOGRAPHICAL METADATA */}
                   <div className="space-y-0.5 pt-1 border-t border-slate-800/50">
-                    <ContactItem icon={<Clock size={10} />} label="Birth Date" value={`${person?.birthDate} (${person?.age}y)`} />
-                    <ContactItem icon={<MapPin size={10} />} label="Birthplace" value={person?.placeOfBirth} />
-                    <ContactItem icon={<GraduationCap size={10} />} label="Education" value={person?.educationLevel} />
-                    <ContactItem icon={<Mail size={10} />} label="Primary Email" value={person?.primaryEmail} />
-                    <ContactItem icon={<Phone size={10} />} label="Primary Phone" value={person?.primaryPhone} />
+                    <ContactItem icon={<Clock size={10} />} label="Birth Date" value={`${person.birthDate} (${person.age}y)`} />
+                    <ContactItem icon={<MapPin size={10} />} label="Birthplace" value={person.placeOfBirth} />
+                    <ContactItem icon={<GraduationCap size={10} />} label="Education" value={person.educationLevel} />
+                    <ContactItem icon={<Mail size={10} />} label="Primary Email" value={person.primaryEmail} />
+                    <ContactItem icon={<Phone size={10} />} label="Primary Phone" value={person.primaryPhone} />
                   </div>
                 </div>
               </section>
 
-              {/* NEW: DETAILED TELEMETRY FOOTPRINT LOG (COMMUNICATION VECTOR MATRIX) */}
+              {/* TECHNICAL SIGNAL TRACES */}
               <section className="bg-slate-900/30 border border-slate-800/60 rounded p-2.5 shadow-xl backdrop-blur-md">
                 <div className="text-[7px] font-mono font-black text-slate-500 uppercase tracking-[0.2em] mb-2 flex items-center gap-1">
                   <Terminal size={10} className="text-emerald-500" /> Technical_Signal_Traces
                 </div>
-                
+
                 <div className="space-y-1.5 max-h-[280px] overflow-y-auto custom-scrollbar pr-1">
-                  {person?.contactHistory && person.contactHistory.length > 0 ? (
+                  {person.contactHistory && person.contactHistory.length > 0 ? (
                     person.contactHistory.map((contact) => {
                       const isDeception = contact.verificationStatus === 'DECEPTION_MARKER';
-                      const isExpired = !contact.isActive || contact.verificationStatus === 'EXPIRED_DEPRECATING';
-                      
+                      // CHANGED: !contact.isActive -> !contact.active.
+                      // PersonContactDto.active (renamed from isActive
+                      // earlier this session). The old field name was
+                      // always undefined, so !undefined was always true —
+                      // isExpired was permanently true regardless of the
+                      // actual active flag, dimming every contact record
+                      // whose verificationStatus wasn't EXPIRED_DEPRECATING.
+                      const isExpired = !contact.active || contact.verificationStatus === 'EXPIRED_DEPRECATING';
+
                       return (
-                        <div 
-                          key={contact.publicId} 
+                        <div
+                          key={contact.publicId}
                           className={`group/contact relative p-1.5 rounded border text-[10px] transition-all bg-black/40 ${
                             isDeception ? 'border-rose-500/40 hover:border-rose-500' :
                             isExpired ? 'border-slate-800/40 opacity-50' : 'border-slate-800 hover:border-emerald-500/50'
@@ -280,7 +378,7 @@ const PersonDossier: React.FC = () => {
                               Conf: {Math.round(contact.confidenceScore * 100)}%
                             </span>
                           </div>
-                          
+
                           <div className={`font-mono text-[9px] break-all select-all selection:bg-emerald-500/50 ${
                             isDeception ? 'text-rose-300 font-bold line-through' : isExpired ? 'text-slate-600' : 'text-white'
                           }`}>
@@ -293,7 +391,6 @@ const PersonDossier: React.FC = () => {
                             </div>
                           )}
 
-                          {/* INTERPOLATED ANALYTICAL TOOLTIP ON HOVER */}
                           {contact.analyticalNote && (
                             <div className="absolute left-full top-0 ml-2 hidden group-hover/contact:block w-[180px] bg-slate-950 border border-slate-800 p-1.5 rounded shadow-2xl z-50 text-[8px] text-slate-400 leading-tight font-sans">
                               <span className="block text-[6px] font-bold text-emerald-500 uppercase font-mono mb-0.5">Operator_Notes:</span>
@@ -321,7 +418,7 @@ const PersonDossier: React.FC = () => {
                 </div>
                 <div className="bg-emerald-500/[0.02] border-l border-emerald-500/40 p-4 rounded-r shadow-inner">
                   <p className="text-base text-slate-300 leading-relaxed font-light italic text-justify first-letter:text-3xl first-letter:font-black first-letter:text-emerald-500 first-letter:mr-1 first-letter:float-left">
-                    {person?.biography || 'NO SUMMARY IN DATABASE'}
+                    {person.biography || 'NO SUMMARY IN DATABASE'}
                   </p>
                 </div>
               </section>
@@ -332,7 +429,7 @@ const PersonDossier: React.FC = () => {
                     <Fingerprint size={14} className="text-emerald-500" />
                     <h3 className="text-[10px] font-black text-white uppercase tracking-[0.3em]">Operational_Record_Log // History</h3>
                   </div>
-                  <div className="text-[8px] font-mono text-emerald-500/50 uppercase">Entries: {history?.length.toString().padStart(2, '0')}</div>
+                  <div className="text-[8px] font-mono text-emerald-500/50 uppercase">Entries: {history?.length.toString().padStart(2, '0') ?? '00'}</div>
                 </div>
 
                 <div className="relative space-y-3 ml-2">
@@ -351,6 +448,15 @@ const PersonDossier: React.FC = () => {
                                 {apt.startDate.replace(/-/g, '.')} // {apt.endDate?.replace(/-/g, '.') || 'ACTIVE'}
                               </span>
                               {isActive && <span className="text-[8px] font-black text-cyan-400 animate-pulse uppercase tracking-tighter">Current_Assignment</span>}
+                              {/* NEW: surfaces apt.acting (renamed from
+                                  isActing) — same "Acting" badge pattern
+                                  used in OccupationDetail, now consistent
+                                  across both views of the same data. */}
+                              {apt.acting && (
+                                <span className="text-[8px] font-black uppercase tracking-tighter px-1.5 py-0.5 border border-amber-500/40 bg-amber-500/10 text-amber-400">
+                                  Acting
+                                </span>
+                              )}
                             </div>
                             <span className="font-mono text-[7px] text-slate-600 uppercase">Ref: {apt.publicId.split('-')[0]}</span>
                           </div>
@@ -391,13 +497,17 @@ const PersonDossier: React.FC = () => {
         </div>
       </div>
 
-      <IntelligenceOverlay personId={person?.publicId || ""} isOpen={isIntelOpen} onClose={() => setIsIntelOpen(false)} />
+      <IntelligenceOverlay personId={person.publicId} isOpen={isIntelOpen} onClose={() => setIsIntelOpen(false)} />
     </div>
   );
 };
 
 // --- MINIFIED HELPERS ---
-const MetricBox = ({ label, value, icon }: any) => (
+
+// CHANGED: typed props (was `any`) for all four helper components below,
+// matching the pattern already applied to MetaField in InstitutionDetail
+// and OccupationDetail.
+const MetricBox = ({ label, value, icon }: { label: string; value: React.ReactNode; icon: React.ReactNode }) => (
   <div className="bg-slate-900/40 border border-slate-800 px-3 py-1.5 rounded flex items-center gap-2.5 backdrop-blur-md">
     <div className="text-emerald-500 opacity-60">{icon}</div>
     <div>
@@ -407,14 +517,14 @@ const MetricBox = ({ label, value, icon }: any) => (
   </div>
 );
 
-const DataPoint = ({ label, value, color = "text-slate-200" }: any) => (
+const DataPoint = ({ label, value, color = "text-slate-200" }: { label: string; value: React.ReactNode; color?: string }) => (
   <div className="bg-black/30 p-1.5 rounded border border-slate-800/40">
     <div className="text-[6px] text-slate-600 font-bold uppercase tracking-[0.1em] mb-0.5">{label}</div>
     <div className={`text-[9px] font-mono font-bold truncate leading-none ${color}`}>{value}</div>
   </div>
 );
 
-const ContactItem = ({ icon, label, value }: any) => (
+const ContactItem = ({ icon, label, value }: { icon: React.ReactNode; label: string; value: React.ReactNode }) => (
   <div className="flex items-center justify-between py-1 border-b border-white/5 last:border-0">
     <span className="flex items-center gap-1 text-[7px] text-slate-600 uppercase font-bold">
       {icon} {label}
@@ -425,7 +535,7 @@ const ContactItem = ({ icon, label, value }: any) => (
   </div>
 );
 
-const BenefitBadge = ({ active, icon, label }: any) => (
+const BenefitBadge = ({ active, icon, label }: { active?: boolean; icon: React.ReactNode; label: string }) => (
   <div className={`flex items-center gap-1 px-1.5 py-0.5 rounded border transition-all ${active ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400' : 'bg-slate-900/50 border-slate-800 text-slate-600 opacity-30 grayscale'}`}>
     {icon} <span className="text-[7px] font-bold uppercase tracking-tight">{label}</span>
   </div>

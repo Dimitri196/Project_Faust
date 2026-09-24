@@ -1,6 +1,6 @@
 package com.projectfaust.dto.response;
 
-import com.projectfaust.entity.enums.ThesisType;
+import com.projectfaust.shared.enums.ThesisType;
 
 import java.util.UUID;
 

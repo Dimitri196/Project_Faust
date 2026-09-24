@@ -27,14 +27,14 @@ import LocationDetailPage from './pages/LocationDetailPage';
 import GlobalSearchTerminal from './pages/GlobalSearchTerminal';
 import SystemProtocols from './pages/SystemProtocols';
 
-// @ts-ignore
-import IntelligenceTerminal from './components/ai/IntelligenceTerminal.jsx';
+import IntelligenceTerminal from './components/ai/IntelligenceTerminal';
 
 // --- HELPER WRAPPER ---
 // Vytáhne 'id' z URL (/intelligence/123) a předá ho jako subjectId do HUD komponenty
 const IntelligencePageWrapper = () => {
-  const { id } = useParams(); 
-  return <IntelligenceTerminal subjectId={id} />;
+  const { id } = useParams();
+  // ensure subjectId is always a string to satisfy prop types
+  return <IntelligenceTerminal subjectId={id ?? ''} />;
 };
 
 function App() {
@@ -101,7 +101,7 @@ function App() {
             <Route path="/archive" element={isAuthenticated ? <ArchivePage /> : <Navigate to="/login" />} />
             <Route path="/agents/:id" element={isAuthenticated ? <AgentProfilePage /> : <Navigate to="/login" />} />
             <Route path="/profile" element={isAuthenticated ? <UserProfilePage /> : <Navigate to="/login" />} />
-            <Route path="/onboard" element={isAuthenticated && user?.isAdmin ? <OnboardingPage /> : <Navigate to="/" />} />
+            <Route path="/onboard" element={isAuthenticated && user?.admin ? <OnboardingPage /> : <Navigate to="/" />} />
 
             {/* 404 - SECTOR NOT FOUND */}
             <Route path="*" element={

@@ -1,4 +1,7 @@
 spring:
+  jmx:
+    enabled: false
+
   # Database Connection
   datasource:
     url: jdbc:postgresql://localhost:5432/project_faust?client_encoding=UTF8&reWriteBatchedInserts=true
@@ -19,7 +22,7 @@ spring:
   # Liquibase Configuration
   liquibase:
     change-log: classpath:db/changelog/db.changelog-master.yaml
-    enabled: true
+    enabled: false
     default-schema: public
 
   # Spring AI Configuration
@@ -28,6 +31,11 @@ spring:
       api-key: ${OPENAI_API_KEY:}
     google:
       api-key: ${GOOGLE_API_KEY:}
+    # Anthropic Claude — added as primary AI model for intelligence briefs.
+    # Key format: sk-ant-... — get from console.anthropic.com → API Keys.
+    # Injected via environment variable ANTHROPIC_API_KEY for security.
+    anthropic:
+      api-key: ${ANTHROPIC_API_KEY:}
 
   # JPA / Hibernate 7 Settings
   jpa:
@@ -41,7 +49,7 @@ spring:
         # Hibernate Envers for Audit Logging
         integration:
           envers:
-            enabled: true # Set to true if audit logging is needed
+            enabled: true
         # Performance optimization for batch inserts
         jdbc:
           batch_size: 50
@@ -50,8 +58,6 @@ spring:
           batch_versioned_data: true
 
   # Security Configuration
-  # Note: In modern Spring Boot, "security.enabled: false" is deprecated.
-  # You should manage this via a SecurityFilterChain @Bean in your code.
   security:
     user:
       name: admin
@@ -79,20 +85,40 @@ logging:
     com.projectfaust: DEBUG
     org.hibernate.SQL: DEBUG
     org.hibernate.type.descriptor.sql.BasicBinder: TRACE
-    # Log Liquibase activity
     liquibase: INFO
 
 # Server Configuration
 server:
-  port: 8080
+  port: 9090
 
 faust:
+  jwt:
+    secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+    expiration-ms: 86400000
   hlidac-statu:
     api-token: "fc1dba02a0dd465f8f568626472ece38"
   theses-cz:
-    base-url: "https://theses.cz/api/v1" # Nebo URL tvého scraperu
+    base-url: "https://theses.cz/api/v1"
     search-endpoint: "/search"
+  semantic-scholar:
+    api-key: ""  # optional — leave blank for anonymous access (1000 RPS shared pool)
+    # get key at semanticscholar.org/product/api for dedicated 1 RPS
   topics:
     raw-contracts: "ingest.hlidac.contracts"
-    raw-theses: "ingest.academic.theses"      # <--- TADY JE TEN NOVÝ TOPIC
+    raw-theses: "ingest.academic.theses"
+    raw-realestate: "ingest.realestate.ownership"
     anomalies: "analysis.anomalies"
+  # AI model configuration — priority: Claude → OpenAI → Gemini
+  # Change model names here without touching any Java code.
+  ai:
+    # Claude (Anthropic) — primary model for intelligence briefs.
+    # Reads from spring.ai.anthropic.api-key above.
+    claude-api-key: ${ANTHROPIC_API_KEY:}
+    claude-model: claude-sonnet-4-6
+    # OpenAI — first fallback when Claude quota is exhausted or key missing.
+    openai-model: gpt-4o
+    # Google Gemini — last resort fallback.
+    gemini-model: gemini-2.5-flash
+    # Max tokens for AI responses — 2048 is sufficient for intelligence briefs.
+    # Increase to 4096 if reports are being truncated.
+    max-tokens: 2048

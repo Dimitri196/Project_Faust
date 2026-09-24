@@ -1,6 +1,7 @@
 package com.projectfaust.entity;
 
-import com.projectfaust.entity.enums.AssetType;
+import com.projectfaust.shared.enums.AssetType;
+import com.projectfaust.person.Person;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.JdbcTypeCode;

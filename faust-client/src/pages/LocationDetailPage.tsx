@@ -1,254 +1,439 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { 
-  ChevronLeft, Building2, Search, Database, 
-  Navigation2, Layers, ShieldAlert, ArrowDownRight,
-  ChevronRight, Target, Globe, Map as MapIcon
+import {
+  ChevronLeft, Building2, Search, Database,
+  Layers, ShieldAlert, ArrowDownRight,
+  ChevronRight, MapPin, Globe,
+  Landmark, Scale, Zap, Map, ShieldCheck,
+  Copy, Check, Users
 } from 'lucide-react';
-import axios from 'axios';
-import type { LocationResponse, InstitutionResponse } from '../types';
+import api from '../api/axios';
+import type { LocationResponse, InstitutionResponse, Page } from '../types';
+import LocationMap from '../components/map/LocationMap';
 
+interface LocationDetailWithPath extends LocationResponse {
+  path: LocationResponse[];
+}
+
+const PAGE_SIZE = 20;
+const SEARCH_DEBOUNCE_MS = 350;
+
+// ── Level config ──────────────────────────────────────────────────────────────
+const LEVEL_CONFIG: Record<string, { color: string; bg: string; border: string; dot: string; icon: React.ReactNode; label: string }> = {
+  CONTINENT:      { color: 'text-purple-400',  bg: 'bg-purple-500/10',  border: 'border-purple-500/30',  dot: 'bg-purple-500',  icon: <Globe    size={13} />, label: 'Continent'    },
+  COUNTRY:        { color: 'text-cyan-400',    bg: 'bg-cyan-500/10',    border: 'border-cyan-500/30',    dot: 'bg-cyan-500',    icon: <Map      size={13} />, label: 'Country'      },
+  PROVINCE:       { color: 'text-blue-400',    bg: 'bg-blue-500/10',    border: 'border-blue-500/30',    dot: 'bg-blue-500',    icon: <Layers   size={13} />, label: 'Province'     },
+  DISTRICT:       { color: 'text-amber-400',   bg: 'bg-amber-500/10',   border: 'border-amber-500/30',   dot: 'bg-amber-500',   icon: <MapPin   size={13} />, label: 'District'     },
+  CITY:           { color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', dot: 'bg-emerald-500', icon: <Building2 size={13}/>, label: 'City'         },
+  SUBDIVISION_L1: { color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', dot: 'bg-emerald-500', icon: <Building2 size={13}/>, label: 'Borough'      },
+  SUBDIVISION_L2: { color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/30', dot: 'bg-emerald-500', icon: <Building2 size={13}/>, label: 'Neighbourhood' },
+  FACILITY:       { color: 'text-rose-400',    bg: 'bg-rose-500/10',    border: 'border-rose-500/30',    dot: 'bg-rose-500',    icon: <Building2 size={13}/>, label: 'Facility'     },
+  DEFAULT:        { color: 'text-slate-400',   bg: 'bg-slate-500/10',   border: 'border-slate-500/30',   dot: 'bg-slate-500',   icon: <MapPin   size={13} />, label: 'Location'     },
+};
+
+const getLevelCfg = (type: string) => LEVEL_CONFIG[type] ?? LEVEL_CONFIG.DEFAULT;
+
+const getInstIcon = (type: string, size = 16) => {
+  switch (type) {
+    case 'INTELLIGENCE': return <ShieldAlert size={size} className="text-red-400" />;
+    case 'MILITARY':     return <ShieldCheck size={size} className="text-orange-400" />;
+    case 'LEGISLATIVE':  return <Landmark    size={size} className="text-purple-400" />;
+    case 'REGULATORY':   return <Zap         size={size} className="text-yellow-400" />;
+    case 'JUDICIAL':     return <Scale       size={size} className="text-blue-400" />;
+    default:             return <Building2   size={size} className="text-slate-400" />;
+  }
+};
+
+// ── Zoom level per location type ──────────────────────────────────────────────
+const getZoom = (type: string): number => {
+  switch (type) {
+    case 'CONTINENT': return 3;
+    case 'COUNTRY':   return 5;
+    case 'PROVINCE':  return 7;
+    case 'DISTRICT':  return 9;
+    case 'CITY':      return 12;
+    default:          return 10;
+  }
+};
+
+// ── Main Page ─────────────────────────────────────────────────────────────────
 const LocationDetailPage = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  const [instPage, setInstPage] = useState(0);
+  const [searchInput, setSearchInput] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
+  const [copiedCoords, setCopiedCoords] = useState(false);
+  const [activeTab, setActiveTab] = useState<'institutions' | 'sublocations'>('institutions');
 
-  // 1. Fetch Current Location Detail & Ancestry Path (Upwards)
-const { data: location, isLoading: isLocLoading, isError: isLocError } = useQuery({
-  queryKey: ['location', id],
-  queryFn: async () => {
-    // 1. Získáme základní detail lokace
-    const detailRes = await axios.get<LocationResponse>(`/api/v1/locations/${id}`);
-    
-    // 2. Získáme cestu (ancestry) přes tvůj dedikovaný endpoint
-    const pathRes = await axios.get<LocationResponse[]>(`/api/v1/locations/${id}/path`);
-    
-    // 3. Vrátíme to v jednom objektu, aby Hierarchy_Ancestry měla data
-    return {
-      ...detailRes.data,
-      path: pathRes.data
-    };
-  },
-  enabled: !!id
-});
+  React.useEffect(() => { setInstPage(0); }, [id]);
 
-  // 2. Fetch Sub-Sectors (Downwards: Kraje -> Okrsky -> Cities)
+  React.useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchInput.trim()), SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(timer);
+  }, [searchInput]);
+
+  React.useEffect(() => { setInstPage(0); }, [debouncedSearch]);
+
+  const { data: location, isLoading: isLocLoading, isError: isLocError } = useQuery<LocationDetailWithPath>({
+    queryKey: ['location', id],
+    queryFn: async () => {
+      const [detailRes, pathRes] = await Promise.all([
+        api.get<LocationResponse>(`/locations/${id}`),
+        api.get<LocationResponse[]>(`/locations/${id}/path`),
+      ]);
+      return { ...detailRes.data, path: pathRes.data };
+    },
+    enabled: !!id
+  });
+
   const { data: subSectors, isLoading: isSubLoading } = useQuery<LocationResponse[]>({
     queryKey: ['location-subs', id],
-    queryFn: async () => {
-      const res = await axios.get(`/api/v1/locations/${id}/sub-locations`);
-      return res.data;
-    },
+    queryFn: async () => (await api.get(`/locations/${id}/sub-locations`)).data,
     enabled: !!id
   });
 
-  // 3. Fetch Institutions bound to this specific node
-  const { data: institutions, isLoading: isInstLoading } = useQuery<InstitutionResponse[]>({
-    queryKey: ['location-institutions', id],
-    queryFn: async () => {
-      const res = await axios.get('/api/v1/institutions/search', {
-        params: { locationId: id }
-      });
-      return res.data;
-    },
+  const { data: institutionsPage, isLoading: isInstLoading } = useQuery<Page<InstitutionResponse>>({
+    queryKey: ['location-institutions', id, instPage, debouncedSearch],
+    queryFn: async () => (await api.get('/institutions/search', {
+      params: { locationId: id, name: debouncedSearch || undefined, page: instPage, size: PAGE_SIZE, sort: 'name,asc' }
+    })).data,
     enabled: !!id
   });
+
+  const institutions = institutionsPage?.content ?? [];
+
+  const copyCoords = () => {
+    if (!location?.latitude || !location?.longitude) return;
+    navigator.clipboard.writeText(`${location.latitude}, ${location.longitude}`);
+    setCopiedCoords(true);
+    setTimeout(() => setCopiedCoords(false), 2000);
+  };
+
+  // Sub-location markers for the map
+  const subMarkers = (subSectors ?? [])
+    .filter(s => s.latitude && s.longitude)
+    .map(s => ({ lat: s.latitude!, lon: s.longitude!, name: s.name, type: s.type }));
 
   if (isLocLoading) return <LoadingState />;
-  if (isLocError || !location) return <ErrorState message="GEOSPATIAL_COORDINATES_INVALID" />;
+  if (isLocError || !location) return <ErrorState message="Location not found" />;
+
+  const cfg      = getLevelCfg(location.type);
+  const hasCoords = location.latitude != null && location.longitude != null;
 
   return (
-    <div className="h-full bg-brand-dark text-slate-200 flex flex-col animate-in fade-in duration-500">
-      
-      {/* HEADER: Tactical Context */}
-      <div className="p-8 border-b border-brand-border bg-brand-panel/20 relative overflow-hidden">
-        <div className="absolute inset-0 opacity-5 pointer-events-none">
-            <div className="absolute inset-0 bg-[linear-gradient(to_right,#1e293b_1px,transparent_1px),linear-gradient(to_bottom,#1e293b_1px,transparent_1px)] bg-[size:40px_40px]" />
-        </div>
-        
-        <div className="max-w-7xl mx-auto relative z-10">
-          <button 
-            onClick={() => navigate(-1)} 
-            className="flex items-center gap-2 text-brand-accent/60 hover:text-brand-accent transition-colors mb-6 font-mono text-[10px] uppercase tracking-widest group"
-          >
-            <ChevronLeft size={14} className="group-hover:-translate-x-1 transition-transform" /> Back_to_Registry
-          </button>
-          
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-6">
-            <div>
-              <div className="flex items-center gap-3 mb-3">
-                <Target size={20} className="text-brand-accent animate-pulse" />
-                <span className="px-2 py-0.5 bg-brand-accent/10 border border-brand-accent/30 text-[9px] font-mono text-brand-accent uppercase tracking-[0.2em]">
-                  {location.type} // {location.isoCode || 'DOMESTIC_SECTOR'}
-                </span>
+    <div className="h-full bg-[#05070a] text-slate-300 flex flex-col overflow-hidden font-sans">
+
+      {/* ── HEADER ── */}
+      <div className="shrink-0 bg-black/40 border-b border-white/8 px-6 py-4">
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1 min-w-0">
+
+            {/* Back + Registry */}
+            <div className="flex items-center gap-3 mb-3">
+              <button
+                onClick={() => window.history.length > 1 ? navigate(-1) : navigate('/locations')}
+                className="flex items-center gap-1.5 text-slate-600 hover:text-brand-accent transition-colors text-[11px] font-mono group"
+              >
+                <ChevronLeft size={13} className="group-hover:-translate-x-0.5 transition-transform" /> Back
+              </button>
+              <span className="text-slate-800">·</span>
+              <Link to="/locations" className="flex items-center gap-1.5 text-slate-700 hover:text-brand-accent transition-colors text-[11px] font-mono">
+                <Globe size={11} /> Registry
+              </Link>
+            </div>
+
+            {/* Ancestor breadcrumb */}
+            {location.path && location.path.length > 1 && (
+              <div className="flex items-center gap-1 flex-wrap mb-2">
+                {location.path.slice(0, -1).map((ancestor, idx) => {
+                  const aCfg = getLevelCfg(ancestor.type);
+                  return (
+                    <React.Fragment key={ancestor.externalId}>
+                      <Link to={`/locations/${ancestor.externalId}`}
+                        className={`text-[11px] font-mono ${aCfg.color} opacity-60 hover:opacity-100 transition-opacity`}>
+                        {ancestor.name}
+                      </Link>
+                      {idx < location.path.length - 2 && <ChevronRight size={10} className="text-slate-800" />}
+                    </React.Fragment>
+                  );
+                })}
+                <ChevronRight size={10} className="text-slate-800" />
               </div>
-              <h1 className="text-5xl font-black text-white italic tracking-tighter uppercase leading-none">
-                {location.name}
-              </h1>
+            )}
+
+            {/* Type badge + name */}
+            <div className="flex items-center gap-3 mb-1.5 flex-wrap">
+              <div className={`inline-flex items-center gap-1.5 px-2.5 py-1 text-[11px] font-semibold ${cfg.bg} ${cfg.color} border ${cfg.border} rounded-sm`}>
+                {cfg.icon} {cfg.label}
+              </div>
+              {location.isoCode && (
+                <span className="text-[11px] font-mono text-slate-600">{location.isoCode}</span>
+              )}
+              <div className={`w-1.5 h-1.5 rounded-full ${cfg.dot} animate-pulse`} />
+              <span className="text-[11px] text-slate-600">{location.active ? 'Active' : 'Inactive'}</span>
             </div>
-            
-            <div className="text-right font-mono">
-              <div className="text-[10px] text-slate-500 uppercase mb-1 tracking-widest">Sector_UUID</div>
-              <div className="text-xs text-brand-accent font-bold tracking-tighter uppercase">{location.externalId}</div>
-            </div>
+
+            <h1 className="text-2xl font-bold text-white leading-tight">{location.name}</h1>
+            {location.localName && location.localName !== location.name && (
+              <p className="text-[12px] text-slate-600 font-mono mt-0.5">{location.localName}</p>
+            )}
           </div>
+
+          {/* Coordinates */}
+          {hasCoords && (
+            <button onClick={copyCoords}
+              className="shrink-0 flex flex-col items-end gap-1 group px-3 py-2 border border-white/8 hover:border-brand-accent/30 transition-colors"
+              title="Copy coordinates">
+              <div className="flex items-center gap-1.5 text-[9px] text-slate-600 uppercase tracking-wide font-mono">
+                <MapPin size={10} /> Coordinates
+                {copiedCoords
+                  ? <Check size={10} className="text-emerald-400" />
+                  : <Copy size={10} className="opacity-0 group-hover:opacity-100 transition-opacity" />}
+              </div>
+              <div className="font-mono text-[12px] text-brand-accent font-bold">
+                {location.latitude!.toFixed(4)}, {location.longitude!.toFixed(4)}
+              </div>
+            </button>
+          )}
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-8 custom-scrollbar">
-        <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-12 gap-8">
-          
-          {/* LEFT COLUMN: HIERARCHY EXPLORER */}
-          <div className="lg:col-span-4 space-y-6">
-            
-            {/* 1. Ancestry (The "Where am I?" Path) */}
-            <section className="bg-brand-panel/10 border border-brand-border p-6 backdrop-blur-sm">
-              <h3 className="text-[10px] font-mono font-black text-slate-500 uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
-                <Layers size={14} className="text-brand-accent" /> Hierarchy_Ancestry
-              </h3>
-              <div className="bg-black/20 p-4 border border-brand-border/30 rounded-sm">
-                 <LocationHierarchy path={location.path} currentId={location.externalId} />
-              </div>
-            </section>
+      {/* ── BODY — split layout ── */}
+      <div className="flex-1 flex overflow-hidden min-h-0">
 
-            {/* 2. Sub-Sectors (The "Drill Down" Path) */}
-            <section className="bg-brand-panel/10 border border-brand-border p-6 backdrop-blur-sm">
-              <h3 className="text-[10px] font-mono font-black text-brand-accent uppercase tracking-[0.3em] mb-6 flex items-center gap-2">
-                <ArrowDownRight size={14} /> Sub_Sectors_Detected
-              </h3>
-              <div className="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-2">
-                {isSubLoading ? (
-                   <div className="animate-pulse space-y-2">
-                      {[1,2,3].map(i => <div key={i} className="h-10 bg-white/5 border border-brand-border/20" />)}
-                   </div>
-                ) : subSectors && subSectors.length > 0 ? (
-                  subSectors.map((sub) => (
-                    <Link 
-                      key={sub.externalId}
-                      to={`/locations/${sub.externalId}`}
-                      className="flex items-center justify-between p-3 bg-black/40 border border-brand-border/50 hover:border-brand-accent/50 group transition-all"
-                    >
-                      <div className="flex flex-col">
-                        <span className="text-[11px] font-mono text-slate-300 group-hover:text-white uppercase">{sub.name}</span>
-                        <span className="text-[8px] font-mono text-slate-600 uppercase tracking-tighter">{sub.type}</span>
-                      </div>
-                      <ChevronRight size={12} className="text-slate-700 group-hover:text-brand-accent group-hover:translate-x-1 transition-all" />
-                    </Link>
-                  ))
-                ) : (
-                  <div className="py-8 text-center border border-dashed border-brand-border/20">
-                    <span className="text-[9px] font-mono text-slate-600 uppercase tracking-widest italic">Terminal_Node // No_Subsectors</span>
-                  </div>
-                )}
-              </div>
-            </section>
-          </div>
+        {/* LEFT PANEL — hierarchy, details, tabs */}
+        <div className="w-[420px] shrink-0 flex flex-col border-r border-white/8 overflow-hidden">
 
-          {/* RIGHT COLUMN: INSTITUTIONAL NODES */}
-          <div className="lg:col-span-8">
-            <section className="bg-brand-panel/10 border border-brand-border p-6 min-h-full backdrop-blur-sm">
-              <div className="flex items-center justify-between mb-8 border-b border-brand-border/30 pb-4">
-                <h3 className="text-[10px] font-mono font-black text-slate-500 uppercase tracking-[0.4em] flex items-center gap-2">
-                  <Database size={16} className="text-brand-accent" /> Bound_Institutional_Nodes
+          {/* Scrollable top section */}
+          <div className="flex-1 overflow-y-auto custom-scrollbar p-5 space-y-4 min-h-0">
+
+            {/* Hierarchy — only when ancestors exist */}
+            {location.path && location.path.length > 1 && (
+              <section className="bg-black/30 border border-white/8 p-4">
+                <h3 className="text-[10px] font-semibold text-slate-600 uppercase tracking-widest mb-3 flex items-center gap-2">
+                  <Layers size={12} className="text-brand-accent" /> Hierarchy
                 </h3>
-                <div className="text-[10px] font-mono text-slate-500 uppercase">
-                    Detected: <span className="text-brand-accent font-bold">{institutions?.length || 0}</span>
-                </div>
-              </div>
+                <LocationHierarchy path={location.path} currentId={location.externalId} />
+              </section>
+            )}
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {isInstLoading ? (
-                    <div className="col-span-2 space-y-4 animate-pulse">
-                        {[1, 2].map(i => <div key={i} className="h-20 bg-white/5 border border-brand-border/30" />)}
-                    </div>
-                ) : institutions && institutions.length > 0 ? (
-                  institutions.map((inst) => (
-                    <Link 
-                        key={inst.publicId} 
-                        to={`/institutions/${inst.publicId}`}
-                        className="group p-4 bg-black/40 border border-brand-border/50 hover:border-brand-accent/50 hover:bg-brand-accent/[0.02] transition-all relative overflow-hidden"
-                    >
-                        <div className="flex items-start gap-4">
-                            <div className="p-2 bg-brand-panel/50 border border-brand-border group-hover:border-brand-accent/30 transition-colors">
-                                <Building2 className="text-slate-500 group-hover:text-brand-accent" size={20} />
-                            </div>
-                            <div className="flex-1 min-w-0">
-                                <div className="text-sm font-black text-white uppercase group-hover:text-brand-accent transition-colors truncate">{inst.name}</div>
-                                <div className="flex items-center gap-2 mt-1 font-mono text-[9px] text-slate-500 uppercase">
-                                    <span>{inst.type}</span>
-                                    <span className="text-brand-accent/30">//</span>
-                                    <span>{inst.level}</span>
-                                </div>
-                            </div>
-                        </div>
-                    </Link>
-                  ))
-                ) : (
-                  <div className="col-span-2 py-32 text-center border border-dashed border-brand-border/20">
-                    <Search className="mx-auto text-slate-800 mb-4" size={32} />
-                    <div className="text-[10px] font-mono text-slate-700 uppercase tracking-widest">
-                        Zero active institutional assets found at this coordinate
-                    </div>
+            {/* Details */}
+            <section className="bg-black/30 border border-white/8 p-4">
+              <h3 className="text-[10px] font-semibold text-slate-600 uppercase tracking-widest mb-3">Details</h3>
+              <div className="space-y-2.5">
+                {[
+                  { label: 'Verification', value: location.verificationStatus?.replace(/_/g, ' ') },
+                  { label: 'Source',       value: location.sourceType?.replace(/_/g, ' ') },
+                  { label: 'Clearance',    value: location.clearanceLevel?.replace(/_/g, ' ') },
+                  { label: 'Added',        value: location.createdAt ? new Date(location.createdAt).toLocaleDateString('en-GB') : null },
+                ].filter(f => f.value).map(({ label, value }) => (
+                  <div key={label} className="flex items-center justify-between text-[11px] border-b border-white/[0.04] pb-2">
+                    <span className="text-slate-600">{label}</span>
+                    <span className="text-slate-300 font-mono">{value}</span>
                   </div>
-                )}
+                ))}
               </div>
             </section>
           </div>
+
+          {/* Tab switcher */}
+          <div className="shrink-0 border-t border-white/8 flex">
+            <button
+              onClick={() => setActiveTab('institutions')}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 text-[11px] font-semibold transition-all border-b-2 ${
+                activeTab === 'institutions'
+                  ? 'border-brand-accent text-brand-accent bg-brand-accent/5'
+                  : 'border-transparent text-slate-600 hover:text-slate-300'
+              }`}
+            >
+              <Building2 size={12} />
+              Institutions
+              {(institutionsPage?.totalElements ?? 0) > 0 && (
+                <span className="text-[9px] bg-brand-accent/20 text-brand-accent px-1.5 py-0.5 rounded-sm font-bold">
+                  {institutionsPage!.totalElements}
+                </span>
+              )}
+            </button>
+            <button
+              onClick={() => setActiveTab('sublocations')}
+              className={`flex-1 flex items-center justify-center gap-2 py-3 text-[11px] font-semibold transition-all border-b-2 ${
+                activeTab === 'sublocations'
+                  ? 'border-brand-accent text-brand-accent bg-brand-accent/5'
+                  : 'border-transparent text-slate-600 hover:text-slate-300'
+              }`}
+            >
+              <Users size={12} />
+              Sub-locations
+              {(subSectors?.length ?? 0) > 0 && (
+                <span className={`text-[9px] px-1.5 py-0.5 rounded-sm font-bold ${
+                  activeTab === 'sublocations' ? `${cfg.bg} ${cfg.color}` : 'bg-white/5 text-slate-600'
+                }`}>
+                  {subSectors!.length}
+                </span>
+              )}
+            </button>
+          </div>
+
+          {/* Tab content */}
+          <div className="h-64 shrink-0 overflow-y-auto custom-scrollbar border-t border-white/5">
+
+            {/* Institutions tab */}
+            {activeTab === 'institutions' && (
+              <div className="p-3 space-y-2">
+                <div className="relative">
+                  <Search size={11} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-700 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={searchInput}
+                    onChange={(e) => setSearchInput(e.target.value)}
+                    placeholder="Search institutions..."
+                    className="w-full bg-black/40 border border-white/8 focus:border-brand-accent/40 outline-none pl-8 pr-3 py-2 text-[11px] text-slate-300 placeholder:text-slate-700 transition-colors"
+                  />
+                </div>
+
+                {isInstLoading ? (
+                  <div className="space-y-2">
+                    {[1,2,3].map(i => <div key={i} className="h-12 bg-white/5 animate-pulse" />)}
+                  </div>
+                ) : institutions.length > 0 ? (
+                  <>
+                    {institutions.map((inst) => (
+                      <Link key={inst.publicId} to={`/institutions/${inst.publicId}`}
+                        className="group flex items-center gap-3 p-2.5 bg-black/20 border border-white/5 hover:border-white/20 transition-all">
+                        <div className="shrink-0">{getInstIcon(inst.type, 14)}</div>
+                        <div className="flex-1 min-w-0">
+                          <div className="text-[12px] font-medium text-slate-300 group-hover:text-white transition-colors truncate">{inst.name}</div>
+                          <div className="text-[9px] text-slate-700">{inst.type} · {inst.level}</div>
+                        </div>
+                        <ChevronRight size={10} className="text-slate-800 group-hover:text-brand-accent shrink-0 transition-colors" />
+                      </Link>
+                    ))}
+                    {institutionsPage && institutionsPage.totalPages > 1 && (
+                      <div className="flex justify-between items-center pt-1 text-[10px] text-slate-700 font-mono">
+                        <button disabled={institutionsPage.first} onClick={() => setInstPage(p => p - 1)}
+                          className="disabled:opacity-30 hover:text-brand-accent transition-colors">← Prev</button>
+                        <span>{instPage + 1} / {institutionsPage.totalPages}</span>
+                        <button disabled={institutionsPage.last} onClick={() => setInstPage(p => p + 1)}
+                          className="disabled:opacity-30 hover:text-brand-accent transition-colors">Next →</button>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="py-8 text-center">
+                    <p className="text-[11px] text-slate-700">
+                      {debouncedSearch ? `No matches for "${debouncedSearch}"` : 'No institutions here'}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Sub-locations tab */}
+            {activeTab === 'sublocations' && (
+              <div className="p-3 space-y-1">
+                {isSubLoading ? (
+                  <div className="space-y-1">
+                    {[1,2,3].map(i => <div key={i} className="h-9 bg-white/5 animate-pulse" />)}
+                  </div>
+                ) : subSectors && subSectors.length > 0 ? (
+                  subSectors.map((sub) => {
+                    const subCfg = getLevelCfg(sub.type);
+                    return (
+                      <Link key={sub.externalId} to={`/locations/${sub.externalId}`}
+                        className="flex items-center justify-between px-3 py-2 bg-black/20 border border-white/5 hover:border-white/20 group transition-all">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${subCfg.dot}`} />
+                          <span className="text-[12px] text-slate-400 group-hover:text-white transition-colors truncate">{sub.name}</span>
+                        </div>
+                        <ChevronRight size={10} className="text-slate-800 group-hover:text-brand-accent shrink-0 transition-colors" />
+                      </Link>
+                    );
+                  })
+                ) : (
+                  <div className="py-8 text-center">
+                    <p className="text-[11px] text-slate-700">No sub-locations</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* RIGHT PANEL — map */}
+        <div className="flex-1 relative overflow-hidden">
+          {hasCoords ? (
+            <LocationMap
+              lat={location.latitude!}
+              lon={location.longitude!}
+              name={location.name}
+              zoom={getZoom(location.type)}
+              markers={subMarkers}
+              className="w-full h-full"
+            />
+          ) : (
+            <div className="w-full h-full flex flex-col items-center justify-center gap-3 bg-[#0d1117]">
+              <MapPin size={32} className="text-slate-800" />
+              <p className="text-[12px] text-slate-700 font-mono">No coordinates available</p>
+              <p className="text-[10px] text-slate-800">Add GPS coordinates to show the map</p>
+            </div>
+          )}
         </div>
       </div>
     </div>
   );
 };
 
-// --- SUBSIDIARY COMPONENTS ---
-
-const LocationHierarchy = ({ path, currentId }: { path?: LocationResponse[], currentId?: string }) => {
-    if (!path) return null;
-    return (
-        <div className="flex flex-col gap-0">
-            {path.map((loc, idx) => (
-                <div key={loc.externalId} className="flex items-center gap-3 group/link">
-                    <div className="flex flex-col items-center w-4">
-                        <div className={`w-2 h-2 rounded-full z-10 border transition-all ${
-                            loc.externalId === currentId 
-                            ? 'bg-brand-accent border-brand-accent shadow-[0_0_10px_#38bdf8]' 
-                            : 'bg-brand-dark border-slate-700'
-                        }`} />
-                        {idx < path.length - 1 && <div className="w-[1px] h-6 bg-brand-border/50" />}
-                    </div>
-                    <Link 
-                        to={`/locations/${loc.externalId}`}
-                        className={`text-[11px] font-mono uppercase tracking-wider py-1 hover:text-brand-accent transition-colors ${
-                            loc.externalId === currentId ? 'text-white font-black' : 'text-slate-500'
-                        }`}
-                    >
-                        {loc.name}
-                        {loc.externalId === currentId && <span className="ml-2 text-[8px] text-brand-accent animate-pulse">●</span>}
-                    </Link>
-                </div>
-            ))}
-        </div>
-    );
+// ── LocationHierarchy ─────────────────────────────────────────────────────────
+const LocationHierarchy = ({ path, currentId }: { path?: LocationResponse[]; currentId?: string }) => {
+  if (!path || path.length === 0) return null;
+  return (
+    <div className="flex flex-col">
+      {path.map((loc, idx) => {
+        const cfg       = getLevelCfg(loc.type);
+        const isCurrent = loc.externalId === currentId;
+        return (
+          <div key={loc.externalId} className="flex items-stretch gap-3">
+            <div className="flex flex-col items-center w-4 shrink-0">
+              <div className={`w-2 h-2 rounded-full mt-2 shrink-0 ${isCurrent ? cfg.dot : 'bg-slate-800 border border-slate-700'}`} />
+              {idx < path.length - 1 && <div className="w-px flex-1 bg-white/8 mt-1" />}
+            </div>
+            <div className="flex-1 pb-2">
+              <Link to={`/locations/${loc.externalId}`}
+                className={`flex flex-col group ${isCurrent ? 'pointer-events-none' : ''}`}>
+                <span className={`text-[9px] font-mono uppercase ${cfg.color}`}>{cfg.label}</span>
+                <span className={`text-[12px] leading-snug transition-colors ${
+                  isCurrent ? 'text-white font-semibold' : 'text-slate-500 group-hover:text-slate-300'
+                }`}>{loc.name}</span>
+              </Link>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
 };
 
-const ErrorState = ({ message }: { message: string }) => (
-    <div className="h-full bg-brand-dark flex flex-col items-center justify-center gap-4">
-      <ShieldAlert className="text-red-500 animate-pulse" size={48} />
-      <div className="font-mono text-red-500 text-xs uppercase tracking-widest">{message}</div>
-      <Link to="/locations" className="text-brand-accent text-[10px] font-mono border border-brand-accent/30 px-4 py-2 hover:bg-brand-accent/10 transition-colors uppercase">
-        Return_to_Registry
-      </Link>
+// ── States ────────────────────────────────────────────────────────────────────
+const LoadingState = () => (
+  <div className="h-full bg-[#05070a] flex flex-col items-center justify-center gap-5 font-mono">
+    <div className="relative w-12 h-12">
+      <div className="absolute inset-0 border border-brand-accent/10 rounded-full" />
+      <div className="absolute inset-0 border-t border-brand-accent rounded-full animate-spin" />
     </div>
+    <span className="text-[10px] text-brand-accent uppercase tracking-[0.5em] animate-pulse">Loading...</span>
+  </div>
 );
 
-const LoadingState = () => (
-    <div className="h-full bg-brand-dark flex flex-col items-center justify-center gap-6 font-mono">
-      <div className="relative w-16 h-16">
-        <div className="absolute inset-0 border-2 border-brand-accent/10 rounded-full" />
-        <div className="absolute inset-0 border-t-2 border-brand-accent rounded-full animate-spin" />
-      </div>
-      <div className="text-[10px] text-brand-accent uppercase tracking-[0.5em] animate-pulse">Synchronizing_Geospatial_Node...</div>
-    </div>
+const ErrorState = ({ message }: { message: string }) => (
+  <div className="h-full bg-[#05070a] flex flex-col items-center justify-center gap-4">
+    <ShieldAlert className="text-red-500" size={36} />
+    <p className="text-[12px] text-red-500/80 font-mono">{message}</p>
+    <Link to="/locations" className="text-[11px] text-brand-accent border border-brand-accent/30 px-4 py-2 hover:bg-brand-accent/10 transition-colors">
+      Back to registry
+    </Link>
+  </div>
 );
 
 export default LocationDetailPage;

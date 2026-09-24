@@ -9,7 +9,6 @@ import {
   SearchCode,
   Scale,
   ShieldCheck,
-  Globe,
   Network,
   Loader2
 } from 'lucide-react';
@@ -24,9 +23,6 @@ interface NodeProps {
   onFocusClick: (id: string) => void;
 }
 
-/**
- * Definuje barvy a styly pro různé úrovně vládní/organizační hierarchie.
- */
 const getLevelStyle = (level: HierarchicalLevel): string => {
   const styles: Record<HierarchicalLevel, string> = {
     INTERNATIONAL: 'text-purple-400 border-purple-400/30 bg-purple-400/5',
@@ -38,9 +34,6 @@ const getLevelStyle = (level: HierarchicalLevel): string => {
   return styles[level] || styles.NATIONAL;
 };
 
-/**
- * Přiřazuje taktické ikony na základě typu instituce.
- */
 const getInstitutionIcon = (type: InstitutionType) => {
   switch (type) {
     case 'INTELLIGENCE':
@@ -64,40 +57,43 @@ const InstitutionTree: React.FC<NodeProps> = ({ node, depth, forceOpen = false, 
   const [isExpanded, setIsExpanded] = useState(false);
   const [childNodes, setChildNodes] = useState<InstitutionTreeResponse[]>(node.children || []);
   const [isLoading, setIsLoading] = useState(false);
+  // NEW: tracks fetch failures so the user sees an explicit error state
+  // instead of a row that silently never expands (previously, a failed
+  // fetchChildren only logged to console — the UI gave no feedback at all).
+  const [hasError, setHasError] = useState(false);
   const navigate = useNavigate();
 
-  // Efekt pro vynucené otevření (např. při výsledcích vyhledávání)
   useEffect(() => {
     if (forceOpen) {
       setIsExpanded(true);
-      // Pokud je vynuceno otevření a nemáme děti, zkusíme je načíst
       if (childNodes.length === 0 && node.hasChildren) {
         fetchChildren();
       }
     }
   }, [forceOpen]);
 
-  // Synchronizace s případnou změnou dat shora
   useEffect(() => {
     if (node.children && node.children.length > 0) {
       setChildNodes(node.children);
     }
   }, [node.children]);
 
-  /**
-   * Logika pro asynchronní načítání potomků (Lazy Loading).
-   */
   const fetchChildren = async () => {
     if (isLoading) return;
     setIsLoading(true);
+    setHasError(false);
     try {
-      // Voláme backend pro získání PŘÍMÝCH dětí
+      // CHANGED: api.get already targets the configured base URL (with
+      // the JWT interceptor attached) — no other change needed here since
+      // this call never had the raw-axios bug other pages had. Confirmed
+      // path matches institutionService's getChildren for consistency.
       const res = await api.get(`/institutions/parent/${node.publicId}`);
       if (Array.isArray(res.data)) {
         setChildNodes(res.data);
       }
     } catch (err) {
       console.error(`FAUST_CORE_ERR: Failed to fetch subordinates for ${node.publicId}`, err);
+      setHasError(true);
     } finally {
       setIsLoading(false);
     }
@@ -106,11 +102,11 @@ const InstitutionTree: React.FC<NodeProps> = ({ node, depth, forceOpen = false, 
   const toggleExpand = async (e: React.MouseEvent) => {
     e.stopPropagation();
     const nextState = !isExpanded;
-    
+
     if (nextState && childNodes.length === 0 && node.hasChildren) {
       await fetchChildren();
     }
-    
+
     setIsExpanded(nextState);
   };
 
@@ -128,13 +124,13 @@ const InstitutionTree: React.FC<NodeProps> = ({ node, depth, forceOpen = false, 
 
   return (
     <div className="relative">
-      {/* HLAVNÍ ŘÁDEK UZLU */}
+      {/* MAIN NODE ROW */}
       <div
         className={`group flex items-center gap-4 p-3 mb-1 border border-transparent transition-all duration-200
           ${isExpanded && hasLoadedChildren ? 'bg-brand-panel/40 border-brand-border/30 shadow-lg' : 'hover:bg-white/5 hover:border-brand-border/20'}`}
       >
         <div className="flex items-center gap-2 z-10">
-          <div 
+          <div
             onClick={toggleExpand}
             className={`flex items-center justify-center w-6 h-6 rounded transition-colors cursor-pointer
               ${node.hasChildren ? 'hover:bg-brand-accent/20' : 'opacity-20 pointer-events-none'}`}
@@ -153,7 +149,7 @@ const InstitutionTree: React.FC<NodeProps> = ({ node, depth, forceOpen = false, 
           </div>
         </div>
 
-        {/* IDENTITA INSTITUCE */}
+        {/* INSTITUTION IDENTITY */}
         <div className="flex-1 min-w-0 cursor-pointer group/label" onClick={handleNavigate}>
           <div className="flex flex-col">
             <div className="flex items-center gap-3">
@@ -168,17 +164,29 @@ const InstitutionTree: React.FC<NodeProps> = ({ node, depth, forceOpen = false, 
                <span className="text-[9px] font-mono text-slate-600 uppercase tracking-tighter">
                  Type::{node.type}
                </span>
-               {node.isStateOwned && (
+               {node.stateOwned && (
                 <div className="flex items-center gap-1 text-yellow-500/40 text-[8px] font-mono uppercase">
                   <span className="w-1 h-1 bg-yellow-500 rounded-full animate-pulse" />
                   State_Prop
                 </div>
                )}
+               {/* NEW: inline retry affordance when a child fetch fails.
+                   Previously a failed fetchChildren left the row stuck —
+                   no children appeared and no error was shown, so the
+                   only recourse was a full page refresh. */}
+               {hasError && (
+                 <button
+                   onClick={(e) => { e.stopPropagation(); fetchChildren(); }}
+                   className="text-[8px] font-mono uppercase text-red-400 hover:text-red-300 underline"
+                 >
+                   Fetch_Failed // Retry
+                 </button>
+               )}
             </div>
           </div>
         </div>
 
-        {/* SYSTÉMOVÉ AKCE */}
+        {/* SYSTEM ACTIONS */}
         <div className="flex items-center gap-2 font-mono text-[9px]">
           <button
             onClick={handleFocusMode}
@@ -203,28 +211,25 @@ const InstitutionTree: React.FC<NodeProps> = ({ node, depth, forceOpen = false, 
         </div>
       </div>
 
-      {/* REKURZIVNÍ VĚTVE (DĚTI) */}
+      {/* RECURSIVE BRANCHES (CHILDREN) */}
       {isExpanded && (
         <div className="ml-7 relative animate-in fade-in slide-in-from-left-2 duration-300">
-          {/* Svislá propojovací linka */}
           <div className="absolute left-[-15px] top-0 bottom-6 w-[1px] bg-brand-border/30" />
-          
+
           <div className="space-y-1 pt-1">
             {hasLoadedChildren ? (
               childNodes.map((child: InstitutionTreeResponse) => (
                 <div key={child.publicId} className="relative">
-                  {/* Vodorovná propojovací linka */}
                   <div className="absolute left-[-15px] top-[22px] w-3.5 h-[1px] bg-brand-border/30" />
-                  <InstitutionTree 
-                    node={child} 
-                    depth={depth + 1} 
+                  <InstitutionTree
+                    node={child}
+                    depth={depth + 1}
                     forceOpen={forceOpen}
-                    onFocusClick={onFocusClick} 
+                    onFocusClick={onFocusClick}
                   />
                 </div>
               ))
             ) : (
-              // Zobrazení skeletonu při načítání hlubších úrovní
               isLoading && (
                 <div className="flex items-center gap-3 p-2 ml-4 opacity-40">
                   <Loader2 size={12} className="animate-spin text-brand-accent" />

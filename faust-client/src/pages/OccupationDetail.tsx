@@ -1,14 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
-import { 
-  ChevronLeft, History, User, Calendar, 
-  ShieldCheck, ArrowRight, Clock, 
-  ExternalLink, Fingerprint, Network, Info, 
-  ShieldAlert, Database, Users, GitMerge, Activity,
-  Terminal, Briefcase, Search, Globe, ChevronRight,
-  Maximize2, X
+import {
+  ChevronLeft, History, User, Clock,
+  ExternalLink, Fingerprint, Network, Info,
+  ShieldAlert, Users, GitMerge, Activity,
+  Terminal, Briefcase, Search, ChevronRight,
+  X, Lock
 } from 'lucide-react';
 import type { OccupationResponse, AppointmentResponse, OccupationTreeResponse } from '../types';
 import HierarchyFlow from '../components/occupations/HierarchyFlow';
@@ -18,43 +17,48 @@ const OccupationDetail = () => {
   const navigate = useNavigate();
   const [isNexusOpen, setIsNexusOpen] = useState(false);
 
-  // ZÁKLADNÍ DATA POZICE
+  // BASE POSITION DATA
   const { data: occupation, isLoading: isOccLoading, isError: isOccError } = useQuery<OccupationResponse>({
     queryKey: ['occupation', id],
     queryFn: async () => (await api.get(`/occupations/${id}`)).data,
     enabled: !!id
   });
 
-  // HISTORIE JMENOVÁNÍ
+  // APPOINTMENT HISTORY
   const { data: history, isLoading: isHistoryLoading } = useQuery<AppointmentResponse[]>({
     queryKey: ['occupation-history', id],
     queryFn: async () => (await api.get(`/appointments/occupation/${id}/history`)).data,
     enabled: !!id
   });
 
-  // PŘÍMÍ PODŘÍZENÍ (PRO RYCHLÝ ASIDE PŘEHLED)
+  // DIRECT SUBORDINATES (for the quick aside overview)
   const { data: subordinates, isLoading: isSubLoading } = useQuery<OccupationResponse[]>({
     queryKey: ['occupation-subordinates', id],
     queryFn: async () => (await api.get(`/occupations/${id}/subordinates`)).data,
     enabled: !!id
   });
 
-  // DATA PRO VISUAL NEXUS (STROM)
-  // Vyžaduje backend endpoint: GET /api/v1/occupations/{id}/tree
+  // VISUAL NEXUS (TREE) DATA
   const { data: treeData, isLoading: isTreeLoading } = useQuery<OccupationTreeResponse[]>({
     queryKey: ['occupation-tree', id],
     queryFn: async () => {
       const res = await api.get(`/occupations/${id}/tree`);
-      // HierarchyFlow očekává pole kořenových uzlů
       return Array.isArray(res.data) ? res.data : [res.data];
     },
     enabled: !!id && isNexusOpen,
-    staleTime: 300000 // Cache po dobu 5 minut
+    staleTime: 300000
   });
 
   const activeAppointments = history?.filter(app => !app.endDate) || [];
-  const pastAppointments = history?.filter(app => app.endDate) || [];
-  const isVacant = activeAppointments.length === 0;
+
+  const pastAppointments = useMemo(() => {
+    return (history?.filter(app => app.endDate) || []).slice().sort((a, b) => {
+      if (!a.endDate || !b.endDate) return 0;
+      return new Date(b.endDate).getTime() - new Date(a.endDate).getTime();
+    });
+  }, [history]);
+
+  const isVacant = occupation ? occupation.vacant : activeAppointments.length === 0;
 
   if (isOccLoading || isHistoryLoading || isSubLoading) return <LoadingState />;
   if (isOccError || !occupation) return <ErrorState message="NODE_DATA_RECOVERY_FAILED" />;
@@ -65,7 +69,7 @@ const OccupationDetail = () => {
 
   return (
     <div className={`h-screen bg-[#02040a] text-slate-300 flex flex-col overflow-hidden font-sans border-4 ${isVacant ? 'border-red-900/30' : 'border-[#0a0f18]'}`}>
-      
+
       {/* STATUS BAR */}
       <div className="h-6 bg-[#0a0f18] border-b border-white/10 flex items-center px-4 justify-between text-[9px] font-mono text-slate-500 uppercase tracking-[0.2em]">
         <div className="flex gap-6">
@@ -92,7 +96,7 @@ const OccupationDetail = () => {
             <Briefcase size={32} className={isVacant ? 'text-red-950' : 'text-blue-900'} />
             <div className={`absolute inset-0 w-full h-[1px] ${isVacant ? 'bg-red-500/40' : 'bg-blue-500/20'} animate-scan-line pointer-events-none`} />
           </div>
-          
+
           <div className="flex-1">
             <div className="flex items-center gap-3 mb-1">
               <Link to={`/institutions/${occupation.institutionPublicId}`} className={`${isVacant ? 'bg-red-600 text-white' : 'bg-blue-600 text-black'} text-[10px] font-black px-2 py-0.5 uppercase italic hover:opacity-80 transition-opacity`}>
@@ -111,8 +115,7 @@ const OccupationDetail = () => {
           </div>
 
           <div className="flex gap-4 h-20">
-             {/* NEXUS TRIGGER */}
-             <button 
+             <button
                 onClick={() => setIsNexusOpen(true)}
                 className="group flex flex-col items-center justify-center px-6 bg-blue-600/5 border border-blue-500/20 hover:bg-blue-600 hover:border-blue-400 transition-all text-blue-500 hover:text-white"
              >
@@ -129,10 +132,10 @@ const OccupationDetail = () => {
 
       {/* MAIN CONTENT */}
       <main className="flex-1 grid grid-cols-12 overflow-hidden bg-[#09122a]">
-        
+
         {/* ASIDE: STRUCTURAL CONTEXT */}
         <aside className="col-span-3 border-r border-white/5 bg-[#05080f] flex flex-col overflow-hidden p-6 space-y-8">
-          
+
           <section className="flex flex-col">
             <div className="flex items-center gap-3 mb-4">
               <div className={`h-[1px] flex-1 bg-gradient-to-r ${isVacant ? 'from-red-500/40' : 'from-blue-500/40'} to-transparent`} />
@@ -140,7 +143,7 @@ const OccupationDetail = () => {
                 <GitMerge size={12} /> Command_Line
               </h3>
             </div>
-            
+
             <div className={`space-y-4 relative pl-4 border-l ${isVacant ? 'border-red-500/20' : 'border-blue-500/20'}`}>
               <div>
                 <span className="text-[8px] font-mono text-slate-600 uppercase block mb-1 italic">Immediate_Superior</span>
@@ -185,7 +188,11 @@ const OccupationDetail = () => {
                 </p>
                 <div className="space-y-3 pt-4 border-t border-white/5">
                   <MetaField label="Deployment_Rank" value={`LVL_${occupation.rank}`} icon={<Activity size={10} />} />
-                  <MetaField label="Security_Level" value="PUBLIC_RECORD" icon={<ShieldCheck size={10} />} />
+                  <MetaField label="Security_Level" value={occupation.requiredClearanceLevel} icon={<Lock size={10} />} />
+                  {/* NEW: holder count, mirroring the Active_Holders count
+                      pattern. Gives an at-a-glance turnover signal without
+                      scrolling to the chronicle section. */}
+                  <MetaField label="Past_Holders" value={pastAppointments.length.toString()} icon={<History size={10} />} />
                 </div>
             </div>
           </section>
@@ -194,20 +201,21 @@ const OccupationDetail = () => {
         {/* MAIN PANEL: ASSETS & CHRONICLE */}
         <section className="col-span-9 flex flex-col bg-[#02040a] relative overflow-hidden">
           <div className="absolute inset-0 bg-[radial-gradient(#1e293b_0.5px,transparent_0.5px)] [background-size:20px_20px] opacity-20 pointer-events-none" />
-          
+
           <div className="flex-1 overflow-y-auto p-8 custom-scrollbar z-10">
-            
-            {/* ACTIVE HOLDERS */}
+
+            {/* ACTIVE HOLDERS — unchanged, kept as cards since this is
+                almost always 1-2 items, not a long scannable list. */}
             <div className="mb-12">
               <h2 className="text-xl font-black text-white uppercase tracking-[0.4em] flex items-center gap-3 italic mb-8 text-shadow-glow">
                 <Users size={22} className={themeColor} /> Active_Holders
               </h2>
-              
+
               {activeAppointments.length > 0 ? (
                 <div className={`grid gap-4 ${activeAppointments.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
                   {activeAppointments.map(app => (
-                    <Link 
-                      key={app.publicId} 
+                    <Link
+                      key={app.publicId}
                       to={`/personnel/${app.personPublicId}`}
                       className="group bg-black/40 border border-white/5 p-4 flex gap-6 hover:border-blue-500/50 transition-all relative overflow-hidden"
                     >
@@ -218,7 +226,14 @@ const OccupationDetail = () => {
                          <div className={`absolute top-0 left-0 w-full h-[1px] ${themeColor} opacity-20 animate-scan-line`} />
                       </div>
                       <div className="flex-1 flex flex-col justify-center">
-                        <span className={`text-[8px] font-mono ${themeColor} uppercase tracking-widest mb-1`}>Verified_Asset_ID</span>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className={`text-[8px] font-mono ${themeColor} uppercase tracking-widest`}>Verified_Asset_ID</span>
+                          {app.acting && (
+                            <span className="text-[8px] font-black uppercase tracking-widest px-1.5 py-0.5 border border-amber-500/40 bg-amber-500/10 text-amber-400">
+                              Acting
+                            </span>
+                          )}
+                        </div>
                         <h4 className="text-2xl font-black text-white uppercase italic tracking-tighter leading-none group-hover:text-blue-400 transition-colors">
                           {app.personDisplayName}
                         </h4>
@@ -228,8 +243,8 @@ const OccupationDetail = () => {
                              <span className="text-[10px] text-slate-300 italic font-bold tracking-widest">{app.startDate}</span>
                            </div>
                            <div className="flex flex-col">
-                             <span className="text-[7px] font-mono text-slate-600 uppercase">Verification_Status</span>
-                             <span className="text-[10px] text-emerald-500 italic font-bold tracking-widest">ACTIVE_HOLDER</span>
+                             <span className="text-[7px] font-mono text-slate-600 uppercase">Tenure_To_Date</span>
+                             <span className="text-[10px] text-blue-400 italic font-bold tracking-widest">{formatTenure(app.startDate, null)}</span>
                            </div>
                         </div>
                       </div>
@@ -248,32 +263,81 @@ const OccupationDetail = () => {
               )}
             </div>
 
-            {/* CHRONICLE */}
+            {/* CHRONICLE — NEW: vertical timeline replacing the 3-column
+                card grid. A grid wraps left-to-right, which breaks
+                chronological reading order (item 4 sits below item 1,
+                not after item 3). A timeline reads top-to-bottom in true
+                date order, mirroring the Hierarchy_Ancestry pattern from
+                LocationDetailPage's LocationHierarchy component. */}
             <div>
-              <h2 className="text-sm font-black text-slate-500 uppercase tracking-[0.4em] flex items-center gap-3 italic mb-6 border-b border-white/5 pb-2">
-                <History size={16} /> Node_Chronicle
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-                {pastAppointments.map(app => (
-                  <button 
-                    key={app.publicId}
-                    onClick={() => navigate(`/personnel/${app.personPublicId}`)}
-                    className="flex items-center gap-4 p-3 bg-white/[0.02] border border-white/5 rounded hover:border-white/20 transition-all group text-left"
-                  >
-                    <div className="w-10 h-12 bg-black border border-white/10 shrink-0 overflow-hidden">
-                      {app.personPhotoUrl ? (
-                        <img src={app.personPhotoUrl} className="w-full h-full object-cover grayscale opacity-40 group-hover:opacity-80" alt="" />
-                      ) : <User size={16} className="m-auto mt-3 text-slate-800" />}
-                    </div>
-                    <div className="min-w-0">
-                      <div className="text-[10px] font-black text-slate-400 group-hover:text-white truncate uppercase italic">{app.personDisplayName}</div>
-                      <div className="text-[8px] font-mono text-slate-600 uppercase flex items-center gap-1 mt-1">
-                        <Clock size={8} /> {app.startDate} — {app.endDate}
-                      </div>
-                    </div>
-                  </button>
-                ))}
+              <div className="flex items-center justify-between mb-6 border-b border-white/5 pb-2">
+                <h2 className="text-sm font-black text-slate-500 uppercase tracking-[0.4em] flex items-center gap-3 italic">
+                  <History size={16} /> Node_Chronicle
+                </h2>
+                {/* NEW: explicit holder count, mirroring Active_Holders /
+                    Direct_Reports count badges used elsewhere on this page. */}
+                <span className="text-[10px] font-mono text-slate-500 px-2 bg-white/5 border border-white/10">
+                  {pastAppointments.length}_Past_Appointment{pastAppointments.length !== 1 ? 's' : ''}
+                </span>
               </div>
+
+              {pastAppointments.length > 0 ? (
+                <div className="relative pl-2">
+                  {pastAppointments.map((app, idx) => (
+                    <div key={app.publicId} className="flex gap-4 group">
+                      {/* Timeline rail: dot + connecting line */}
+                      <div className="flex flex-col items-center w-4 shrink-0">
+                        <div className="w-2.5 h-2.5 rounded-full border-2 border-slate-700 bg-black group-hover:border-blue-500 transition-colors z-10 mt-1.5" />
+                        {idx < pastAppointments.length - 1 && (
+                          <div className="w-[1px] flex-1 bg-white/10 my-1" />
+                        )}
+                      </div>
+
+                      {/* Row content */}
+                      <button
+                        onClick={() => navigate(`/personnel/${app.personPublicId}`)}
+                        className="flex-1 flex items-center gap-4 p-3 mb-3 bg-white/[0.02] border border-white/5 rounded hover:border-blue-500/30 hover:bg-blue-500/[0.02] transition-all text-left"
+                      >
+                        <div className="w-10 h-12 bg-black border border-white/10 shrink-0 overflow-hidden">
+                          {app.personPhotoUrl ? (
+                            <img src={app.personPhotoUrl} className="w-full h-full object-cover grayscale opacity-40 group-hover:opacity-80 transition-opacity" alt="" />
+                          ) : <User size={16} className="m-auto mt-3 text-slate-800" />}
+                        </div>
+
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-2">
+                            <span className="text-[11px] font-black text-slate-300 group-hover:text-white truncate uppercase italic">
+                              {app.personDisplayName}
+                            </span>
+                            {app.acting && (
+                              <span className="text-[7px] font-black uppercase px-1 border border-amber-500/30 text-amber-500 shrink-0">Acting</span>
+                            )}
+                          </div>
+                          <div className="text-[8px] font-mono text-slate-600 uppercase flex items-center gap-1 mt-1">
+                            <Clock size={8} /> {app.startDate} → {app.endDate}
+                          </div>
+                        </div>
+
+                        {/* NEW: computed tenure duration — the core addition.
+                            Removes the need for the analyst to mentally
+                            subtract two dates to judge whether a tenure
+                            was unusually short or long. */}
+                        <div className="text-right shrink-0">
+                          <span className="text-[10px] font-mono text-blue-400/80 font-bold tracking-wider">
+                            {formatTenure(app.startDate, app.endDate)}
+                          </span>
+                        </div>
+
+                        <ChevronRight size={14} className="text-slate-700 group-hover:text-blue-500 transition-colors shrink-0" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="py-12 text-center border border-dashed border-white/5 rounded">
+                  <span className="text-[9px] font-mono text-slate-700 uppercase tracking-widest italic">No_Prior_Appointments_Recorded</span>
+                </div>
+              )}
             </div>
           </div>
         </section>
@@ -282,7 +346,6 @@ const OccupationDetail = () => {
       {/* VISUAL NEXUS TERMINAL (MODAL) */}
       {isNexusOpen && (
         <div className="fixed inset-0 z-[100] bg-[#02040a]/98 backdrop-blur-3xl flex flex-col animate-in fade-in duration-300">
-           {/* Modal Header */}
            <div className="h-16 border-b border-white/10 flex justify-between items-center px-8 bg-black/90">
               <div className="flex items-center gap-4">
                 <div className="p-2 bg-blue-500/10 border border-blue-500/20">
@@ -293,7 +356,7 @@ const OccupationDetail = () => {
                    <p className="text-[8px] font-mono text-slate-500 uppercase tracking-widest mt-1">Mapping operational hierarchy for node: {occupation.code}</p>
                 </div>
               </div>
-              <button 
+              <button
                 onClick={() => setIsNexusOpen(false)}
                 className="flex items-center gap-2 px-6 py-2 border border-white/10 hover:border-red-500 hover:text-red-500 transition-all text-[10px] font-black uppercase italic group"
               >
@@ -301,7 +364,6 @@ const OccupationDetail = () => {
               </button>
            </div>
 
-           {/* Flow Component Container */}
            <div className="flex-1 relative overflow-hidden">
               {isTreeLoading ? (
                 <div className="absolute inset-0 flex items-center justify-center font-mono text-[10px] text-blue-500/40 animate-pulse">
@@ -332,12 +394,36 @@ const OccupationDetail = () => {
 };
 
 // --- HELPERS ---
-const MetaField = ({ label, value, icon }: any) => (
+
+const MetaField = ({ label, value, icon }: { label: string; value: React.ReactNode; icon: React.ReactNode }) => (
   <div className="flex items-center justify-between text-[10px] border-b border-white/[0.03] pb-2">
     <div className="flex items-center gap-2 text-slate-500 uppercase font-mono italic">{icon} <span>{label}</span></div>
     <div className="text-slate-200 font-black uppercase italic truncate ml-4">{value || 'N/A'}</div>
   </div>
 );
+
+// NEW: computes a human-readable tenure duration from start/end ISO date
+// strings. Used both for past appointments (fixed duration) and active
+// holders (open-ended — "to date"). Returns whole years + months, falling
+// back to days for very short tenures (e.g. "14d" for a 2-week acting
+// appointment, which is itself a notable signal worth surfacing exactly).
+function formatTenure(startDate: string, endDate: string | null): string {
+  const start = new Date(startDate);
+  const end = endDate ? new Date(endDate) : new Date();
+
+  const totalMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
+  const years = Math.floor(totalMonths / 12);
+  const months = totalMonths % 12;
+
+  if (totalMonths < 1) {
+    const days = Math.max(1, Math.round((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24)));
+    return `${days}d`;
+  }
+
+  if (years === 0) return `${months}mo`;
+  if (months === 0) return `${years}y`;
+  return `${years}y ${months}mo`;
+}
 
 const LoadingState = () => (
   <div className="h-screen bg-[#02040a] flex flex-col items-center justify-center font-mono">

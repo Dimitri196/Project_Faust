@@ -1,6 +1,7 @@
 package com.projectfaust.entity;
 
-import com.projectfaust.entity.enums.IncomeSourceType;
+import com.projectfaust.shared.enums.IncomeSourceType;
+import com.projectfaust.person.Person;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.envers.Audited;

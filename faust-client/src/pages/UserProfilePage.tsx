@@ -122,7 +122,7 @@ const UserProfilePage = () => {
                      <input 
                        className="bg-transparent border-b border-slate-700 outline-none text-blue-400"
                        value={editForm.role}
-                       onChange={e => setEditForm({...editForm, role: e.target.value})}
+                       onChange={e => setEditForm({...editForm, role: e.target.value as UserProfile['role']})}
                      />
                    ) : profile.role}
                 </span>

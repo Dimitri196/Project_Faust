@@ -99,8 +99,8 @@ const PeoplePage = () => {
             </div>
 
             <div className="grid grid-cols-2 gap-6 mb-12">
-              <DataBox label="Comms_Channel" value={selectedPerson.email} icon={<Mail size={14}/>} />
-              <DataBox label="Field_of_Expertise" value={selectedPerson.fieldOfStudy} icon={<History size={14}/>} />
+              <DataBox label="Comms_Channel" value={selectedPerson.primaryEmail || 'N/A'} icon={<Mail size={14}/>} />
+              <DataBox label="Field_of_Expertise" value={selectedPerson.fieldOfStudy || 'N/A'} icon={<History size={14}/>} />
             </div>
 
             {/* Reálná Historie Jmenování */}

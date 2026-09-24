@@ -95,7 +95,7 @@ const AgentProfilePage = () => {
                     <input 
                       className="w-full bg-black border border-emerald-500 p-2 text-emerald-400 text-xs outline-none"
                       value={formData.role}
-                      onChange={e => setFormData({...formData, role: e.target.value})}
+                      onChange={e => setFormData({...formData, role: e.target.value as UpdateProfileRequest['role']})}
                     />
                   </div>
                 ) : (
@@ -111,7 +111,7 @@ const AgentProfilePage = () => {
             <div className="border border-emerald-900/30 bg-emerald-950/5 p-4 space-y-4">
                <StatusRow label="Clearance" value={agent?.clearance || ''} critical={agent?.clearance.includes('LEVEL_5')} />
                <StatusRow label="Status" value={agent?.status || ''} />
-               <StatusRow label="Network" value={agent?.isAdmin ? 'ROOT_ADMIN' : 'RESRICTED'} />
+               <StatusRow label="Network" value={agent?.admin ? 'ROOT_ADMIN' : 'RESRICTED'} />
             </div>
           </div>
 

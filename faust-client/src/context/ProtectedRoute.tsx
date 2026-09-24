@@ -26,7 +26,7 @@ const ProtectedRoute = ({ children, adminOnly = false }: ProtectedRouteProps) =>
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (adminOnly && !user?.isAdmin) {
+  if (adminOnly && !user?.admin) {
     // Pokud chce na admin stránku a není admin, hodíme ho na dashboard (nebo 403)
     return <Navigate to="/" replace />;
   }

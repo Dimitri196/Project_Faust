@@ -14,7 +14,7 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOriginPatterns("http://localhost:6173") // allow any origin for dev instead of :5173
+                        .allowedOriginPatterns("http://localhost:5173") // allow any origin for dev instead of :5173
                         .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
                         .exposedHeaders("Authorization", "Link", "X-Total-Count")
                         .allowedHeaders("*")

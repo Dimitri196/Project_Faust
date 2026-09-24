@@ -1,9 +1,13 @@
 import React from 'react';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
-import { GitBranch, Info, Database, Layers, AlertCircle, Search } from 'lucide-react';
+import { GitBranch, Info, Database, AlertCircle, Search } from 'lucide-react';
 import type { OccupationTreeResponse } from '../types';
 import OccupationNode from '../components/occupations/OccupationNodeTactical';
+// CHANGED: countNodes/countVacancies now imported from a shared utility
+// instead of being defined locally — the exact same logic was duplicated
+// in HierarchyPage.tsx with a slightly different parameter style.
+import { countNodes, countVacancies } from '../utils/occupationTree';
 
 const OccupationsPage = () => {
   const { data: tree, isLoading, error } = useQuery<OccupationTreeResponse[]>({
@@ -14,13 +18,12 @@ const OccupationsPage = () => {
     }
   });
 
-  // Odvozené statistiky
   const totalNodes = tree ? countNodes(tree) : 0;
   const vacancies = tree ? countVacancies(tree) : 0;
 
   return (
     <div className="h-full flex flex-col bg-[#0f172a] text-slate-200">
-      
+
       {/* ANALYTICAL HEADER */}
       <div className="px-8 py-6 border-b border-slate-800 bg-slate-900/50">
         <div className="max-w-7xl mx-auto flex flex-col md:flex-row md:items-center justify-between gap-6">
@@ -33,18 +36,18 @@ const OccupationsPage = () => {
               Structural <span className="text-slate-500 font-light">Hierarchy</span>
             </h1>
           </div>
-          
+
           <div className="flex items-center gap-4">
-            <Metric 
-              label="Total Positions" 
-              value={totalNodes} 
-              color="text-blue-400" 
+            <Metric
+              label="Total Positions"
+              value={totalNodes}
+              color="text-blue-400"
             />
-            <Metric 
-              label="Active Vacancies" 
-              value={vacancies} 
-              color="text-amber-500" 
-              isWarning={vacancies > 0} 
+            <Metric
+              label="Active Vacancies"
+              value={vacancies}
+              color="text-amber-500"
+              isWarning={vacancies > 0}
             />
           </div>
         </div>
@@ -52,7 +55,7 @@ const OccupationsPage = () => {
 
       {/* VIEWPORT AREA */}
       <div className="flex-1 overflow-auto p-8 custom-scrollbar relative bg-[radial-gradient(#1e293b_1px,transparent_1px)] [background-size:32px_32px]">
-        
+
         <div className="max-w-5xl mx-auto">
           {/* USER GUIDANCE */}
           <div className="mb-8 flex items-center justify-between bg-blue-500/5 border border-blue-500/10 p-4 rounded-lg">
@@ -61,8 +64,9 @@ const OccupationsPage = () => {
                 <Info size={16} className="text-blue-400" />
               </div>
               <p className="text-xs text-slate-400 leading-relaxed max-w-xl font-medium">
-                Exploration of the institutional command chain. Use the nodes below to drill down into 
-                <span className="text-slate-200"> departmental mandates</span>, <span className="text-slate-200">legal assignments</span> and <span className="text-slate-200">personnel history</span>.
+                Exploration of the institutional command chain. Click any node below to open its
+                <span className="text-slate-200"> full dossier</span>, or use the chevron to expand
+                <span className="text-slate-200"> subordinate positions</span>.
               </p>
             </div>
             <div className="hidden lg:block">
@@ -88,10 +92,10 @@ const OccupationsPage = () => {
           ) : (
             <div className="space-y-2 animate-in fade-in slide-in-from-bottom-4 duration-700">
               {tree?.map((rootNode) => (
-                <OccupationNode 
-                  key={rootNode.publicId} 
-                  node={rootNode} 
-                  depth={0} 
+                <OccupationNode
+                  key={rootNode.publicId}
+                  node={rootNode}
+                  depth={0}
                 />
               ))}
             </div>
@@ -133,15 +137,5 @@ const Metric = ({ label, value, color, isWarning, block }: MetricProps) => (
     </div>
   </div>
 );
-
-// --- UTILITIES ---
-
-const countNodes = (nodes: OccupationTreeResponse[]): number => {
-  return nodes.reduce((acc, node) => acc + 1 + (node.subordinates ? countNodes(node.subordinates) : 0), 0);
-};
-
-const countVacancies = (nodes: OccupationTreeResponse[]): number => {
-  return nodes.reduce((acc, node) => acc + (node.isVacant ? 1 : 0) + (node.subordinates ? countVacancies(node.subordinates) : 0), 0);
-};
 
 export default OccupationsPage;

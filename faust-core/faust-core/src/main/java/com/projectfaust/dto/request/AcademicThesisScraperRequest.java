@@ -1,6 +1,6 @@
 package com.projectfaust.dto.request;
 
-import com.projectfaust.entity.enums.ThesisType;
+import com.projectfaust.shared.enums.ThesisType;
 
 public record AcademicThesisScraperRequest(
         String sourceSystemId,

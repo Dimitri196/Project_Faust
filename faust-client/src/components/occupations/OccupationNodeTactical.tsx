@@ -19,7 +19,7 @@ const OccupationNode: React.FC<Props> = ({ node, depth }) => {
       <div 
         className={`
           group flex items-center p-3 border-l-2 transition-all cursor-pointer
-          ${node.isVacant ? 'border-red-500/50 bg-red-500/5' : 'border-brand-accent/30 bg-brand-panel/20'}
+          ${node.vacant ? 'border-red-500/50 bg-red-500/5' : 'border-brand-accent/30 bg-brand-panel/20'}
           hover:bg-brand-accent/10 mb-1
         `}
         style={{ marginLeft: `${depth * 24}px` }}
@@ -40,7 +40,7 @@ const OccupationNode: React.FC<Props> = ({ node, depth }) => {
         </div>
 
         <div className="mr-4">
-          {node.isVacant ? (
+          {node.vacant ? (
             <ShieldAlert size={16} className="text-red-500 animate-pulse" />
           ) : (
             <ShieldCheck size={16} className="text-brand-accent" />
@@ -57,9 +57,9 @@ const OccupationNode: React.FC<Props> = ({ node, depth }) => {
 
           <div className="flex items-center gap-6 flex-shrink-0">
             <div className="hidden md:flex items-center gap-2 px-3 py-1 bg-black/40 border border-white/5 rounded-sm">
-              <User size={12} className={node.isVacant ? 'text-red-500/50' : 'text-brand-accent'} />
-              <span className={`text-[10px] font-black uppercase tracking-widest ${node.isVacant ? 'text-red-500/40 italic' : 'text-slate-300'}`}>
-                {node.isVacant ? 'UNOCCUPIED' : node.currentOccupantName}
+              <User size={12} className={node.vacant ? 'text-red-500/50' : 'text-brand-accent'} />
+              <span className={`text-[10px] font-black uppercase tracking-widest ${node.vacant ? 'text-red-500/40 italic' : 'text-slate-300'}`}>
+                {node.vacant ? 'UNOCCUPIED' : node.currentOccupantName}
               </span>
             </div>
 

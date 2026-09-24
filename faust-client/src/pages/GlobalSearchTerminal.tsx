@@ -2,18 +2,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import {
   Search, Shield, Fingerprint, Building2,
-  X, Activity, Command, Zap, Cpu, Briefcase, Share2
+  X, Activity, Command, Zap, Cpu, Briefcase, Share2, MapPin, AlertTriangle
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-
-interface SearchResultDTO {
-  id: string;
-  displayName: string;
-  category: 'PERSON' | 'INSTITUTION' | 'OCCUPATION';
-  subLabel: string;
-  rankScore: number;
-}
+// CHANGED: was `import axios from 'axios'`. Same root cause as the Location
+// pages — raw axios has no Authorization interceptor. Now that
+// /api/v1/search/global requires hasRole('VIEWER'), every search would
+// return 403 without this.
+import api from '../api/axios';
+import type { GlobalSearchResponse, SearchCategory } from '../types';
 
 const GlobalSearchTerminal = () => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -35,11 +32,16 @@ const GlobalSearchTerminal = () => {
     }
   }, [debouncedQuery]);
 
-  const { data: results, isFetching } = useQuery<SearchResultDTO[]>({
+  // CHANGED: useQuery<SearchResultDTO[]> -> useQuery<GlobalSearchResponse[]>.
+  // GlobalSearchResponse now lives in types/index.ts, matching the backend
+  // record exactly (id, displayName, category, subLabel, rankScore) rather
+  // than a locally-duplicated, narrower-typed interface.
+  const { data: results, isFetching, isError } = useQuery<GlobalSearchResponse[]>({
     queryKey: ['global-search', debouncedQuery],
     queryFn: async () => {
       if (!debouncedQuery || debouncedQuery.length < 3) return [];
-      const response = await axios.get('/api/v1/search/global', {
+      // CHANGED: axios -> api, '/api/v1/search/global' -> '/search/global'
+      const response = await api.get('/search/global', {
         params: { query: debouncedQuery, vector: 'ALL' }
       });
       return response.data;
@@ -52,22 +54,38 @@ const GlobalSearchTerminal = () => {
     setIsHudActive(false);
   };
 
-  // KLÍČOVÁ OPRAVA: Směrování podle kategorie
-  const handleNavigate = (res: SearchResultDTO) => {
-    if (res.category === 'PERSON') {
-      navigate(`/personnel/${res.id}`);
-    } else if (res.category === 'INSTITUTION') {
-      navigate(`/institutions/${res.id}`);
-    } else if (res.category === 'OCCUPATION') {
-      navigate(`/occupations/${res.id}`);
+  // CHANGED: added LOCATION case. Previously, clicking a LOCATION result
+  // (which global_search_view almost certainly returns, since locations
+  // have a search_vector like every other entity) fell through this
+  // if/else chain silently — no navigation occurred at all.
+  const handleNavigate = (res: GlobalSearchResponse) => {
+    switch (res.category as SearchCategory) {
+      case 'PERSON':
+        navigate(`/personnel/${res.id}`);
+        break;
+      case 'INSTITUTION':
+        navigate(`/institutions/${res.id}`);
+        break;
+      case 'OCCUPATION':
+        navigate(`/occupations/${res.id}`);
+        break;
+      case 'LOCATION':
+        navigate(`/locations/${res.id}`);
+        break;
+      default:
+        // Unknown category from backend — log for diagnostics rather than
+        // silently doing nothing.
+        console.warn(`FAUST_SEARCH: Unhandled result category "${res.category}" for id ${res.id}`);
     }
   };
 
+  // CHANGED: added LOCATION icon (MapPin), matching the new category.
   const getCategoryIcon = (category: string) => {
     switch (category) {
       case 'PERSON': return <Fingerprint size={18} />;
       case 'INSTITUTION': return <Building2 size={18} />;
       case 'OCCUPATION': return <Briefcase size={18} />;
+      case 'LOCATION': return <MapPin size={18} />;
       default: return <Zap size={18} />;
     }
   };
@@ -139,6 +157,30 @@ const GlobalSearchTerminal = () => {
                   ))}
                 </tbody>
               </table>
+
+              {/* NEW: feedback states. Previously, an error response or a
+                  query with zero matches both rendered as a table with
+                  only headers — indistinguishable from a broken page. */}
+              {isFetching && (
+                <div className="flex flex-col items-center justify-center py-24 gap-4 text-cyan-500/40">
+                  <Cpu className="animate-spin" size={32} />
+                  <span className="text-[10px] uppercase tracking-[0.4em] animate-pulse">Querying_Central_Registry...</span>
+                </div>
+              )}
+
+              {!isFetching && isError && (
+                <div className="flex flex-col items-center justify-center py-24 gap-4 text-red-500/70">
+                  <AlertTriangle size={32} />
+                  <span className="text-[10px] uppercase tracking-[0.4em]">Search_Uplink_Failed // Insufficient_Clearance_Or_Server_Error</span>
+                </div>
+              )}
+
+              {!isFetching && !isError && results && results.length === 0 && (
+                <div className="flex flex-col items-center justify-center py-24 gap-4 text-cyan-500/30">
+                  <Search size={32} />
+                  <span className="text-[10px] uppercase tracking-[0.4em]">Zero_Matches // No_Records_Identified</span>
+                </div>
+              )}
             </div>
 
             {/* BOTTOM CONTROL PANEL */}

@@ -2,9 +2,9 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import api from '../api/axios';
-import type { UserProfile, ClearanceLevel } from '../types';
-import { 
-  Users, Search, ChevronRight, 
+import type { UserProfile, ClearanceLevel, Page } from '../types';
+import {
+  Users, Search, ChevronRight,
   Shield, Activity, Fingerprint, RefreshCw
 } from 'lucide-react';
 
@@ -13,14 +13,28 @@ const ArchivePage = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterLevel, setFilterLevel] = useState<ClearanceLevel | 'ALL'>('ALL');
 
-  const { data: archive, isLoading } = useQuery<UserProfile[]>({
+  // CHANGED: GET /profile/archive returns Page<ProfileResponse>, not a bare
+  // array. useQuery<Page<UserProfile>> reflects the actual response shape;
+  // archive?.content is the operator list.
+  //
+  // Also explicitly pass page/size/sort params so this request never relies
+  // on Swagger-UI-style defaults. sort=fullName,asc matches the backend's
+  // @PageableDefault(size = 20, sort = "fullName").
+  const { data: archive, isLoading } = useQuery<Page<UserProfile>>({
     queryKey: ['archive'],
     queryFn: async () => {
-      // Endpoint v Java ProfileController: @GetMapping("/archive")
-      const res = await api.get('/profile/archive');
+      const res = await api.get('/profile/archive', {
+        params: {
+          page: 0,
+          size: 100,
+          sort: 'fullName,asc',
+        },
+      });
       return res.data;
     }
   });
+
+  const operators = archive?.content ?? [];
 
   const getLevelColor = (level: ClearanceLevel) => {
     const colors: Record<ClearanceLevel, string> = {
@@ -33,8 +47,9 @@ const ArchivePage = () => {
     return colors[level] || colors.LEVEL_1_PUBLIC;
   };
 
-  const filteredArchive = archive?.filter(user => {
-    const matchesSearch = user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  // CHANGED: filter over operators (archive.content), not archive itself.
+  const filteredArchive = operators.filter(user => {
+    const matchesSearch = user.fullName.toLowerCase().includes(searchTerm.toLowerCase()) ||
                           user.role.toLowerCase().includes(searchTerm.toLowerCase());
     const matchesFilter = filterLevel === 'ALL' || user.clearance === filterLevel;
     return matchesSearch && matchesFilter;
@@ -52,7 +67,7 @@ const ArchivePage = () => {
       <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-[0.03] pointer-events-none" />
 
       <div className="max-w-6xl mx-auto relative z-10">
-        
+
         {/* HEADER SECTION */}
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12 border-b border-brand-border pb-8">
           <div>
@@ -67,7 +82,7 @@ const ArchivePage = () => {
           <div className="flex flex-wrap gap-4">
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-600" size={16} />
-              <input 
+              <input
                 type="text"
                 placeholder="SEARCH_BY_AGENT_NAME..."
                 className="bg-black/40 border border-brand-border py-2 pl-10 pr-4 rounded-sm text-xs font-mono text-brand-accent focus:border-brand-accent/50 outline-none w-64 uppercase tracking-widest"
@@ -75,10 +90,10 @@ const ArchivePage = () => {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <select 
+            <select
               className="bg-black/40 border border-brand-border py-2 px-4 rounded-sm text-[10px] font-mono uppercase tracking-widest outline-none text-slate-400 focus:border-brand-accent/50"
               value={filterLevel}
-              onChange={(e) => setFilterLevel(e.target.value as any)}
+              onChange={(e) => setFilterLevel(e.target.value as ClearanceLevel | 'ALL')}
             >
               <option value="ALL">All_Clearance</option>
               <option value="LEVEL_1_PUBLIC">Level_1</option>
@@ -102,10 +117,10 @@ const ArchivePage = () => {
               </tr>
             </thead>
             <tbody className="divide-y divide-brand-border/30">
-              {filteredArchive?.map((agent) => (
-                <tr 
+              {filteredArchive.map((agent) => (
+                <tr
                   key={agent.id}
-                  /* KLÍČOVÁ ZMĚNA: Navigujeme na /agents/ místo /personnel/ */
+                  // Navigate to /agents/ rather than /personnel/ — agent profile view.
                   onClick={() => navigate(`/agents/${agent.id}`)}
                   className="group hover:bg-brand-accent/5 transition-all cursor-pointer"
                 >
@@ -138,8 +153,8 @@ const ArchivePage = () => {
               ))}
             </tbody>
           </table>
-          
-          {filteredArchive?.length === 0 && (
+
+          {filteredArchive.length === 0 && (
             <div className="p-20 text-center font-mono text-[10px] text-slate-600 uppercase tracking-[0.3em]">
               No_Results_Found_In_Archive
             </div>
@@ -148,9 +163,9 @@ const ArchivePage = () => {
 
         {/* FOOTER STATS */}
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-3 gap-4">
-           <StatMini label="Total_Assets" value={archive?.length || 0} icon={<Users size={12}/>} />
-           <StatMini label="Active_Ops" value={archive?.filter(a => a.status === 'OPERATIONAL').length || 0} icon={<Activity size={12}/>} />
-           <StatMini label="Admin_Nodes" value={archive?.filter(a => a.isAdmin).length || 0} icon={<Shield size={12}/>} />
+           <StatMini label="Total_Assets" value={archive?.totalElements ?? operators.length} icon={<Users size={12}/>} />
+           <StatMini label="Active_Ops" value={operators.filter(a => a.status === 'OPERATIONAL').length} icon={<Activity size={12}/>} />
+           <StatMini label="Admin_Nodes" value={operators.filter(a => a.admin).length} icon={<Shield size={12}/>} />
         </div>
       </div>
     </div>

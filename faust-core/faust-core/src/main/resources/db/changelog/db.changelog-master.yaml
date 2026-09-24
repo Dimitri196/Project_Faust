@@ -6,4 +6,8 @@ databaseChangeLog:
   - include:
       file: db/changelog/changesets/03-appointments.sql
   - include:
-      file: db/changelog/changesets/04-users-RETRY-V1.sql  # ZDE: Musí to být přesně tato cesta!
+      file: db/changelog/changesets/04-users-RETRY-V1.sql
+  - include:
+      file: db/changelog/changesets/06-institution-intelligence-fields.sql
+  - include:
+      file: db/changelog/changesets/07-occupation-intelligence-fields.sql

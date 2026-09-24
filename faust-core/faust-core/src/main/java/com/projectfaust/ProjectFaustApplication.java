@@ -7,8 +7,8 @@ import org.springframework.data.jpa.repository.config.EnableJpaRepositories;
 import org.springframework.kafka.annotation.EnableKafka;
 
 @SpringBootApplication
-@EntityScan("com.projectfaust.entity")
-@EnableJpaRepositories("com.projectfaust.repository")
+@EntityScan("com.projectfaust")
+@EnableJpaRepositories("com.projectfaust")
 @EnableKafka
 public class ProjectFaustApplication {
 
